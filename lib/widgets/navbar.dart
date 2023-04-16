@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:responsive_builder/responsive_builder.dart';
 import 'package:tiatia/main.dart';
 import 'package:tiatia/utils/colors.dart';
+import 'package:tiatia/utils/constants.dart';
 import 'package:tiatia/utils/styles.dart';
 
 class NavBar extends StatefulWidget {
@@ -92,7 +93,7 @@ class _NavBarState extends State<NavBar> {
       width: 140,
       height: 140,
       decoration: BoxDecoration(
-        image: DecorationImage(image: AssetImage('assets/images/logo.png'), fit: BoxFit.cover)),
+        image: DecorationImage(image: AssetImage(logo), fit: BoxFit.cover)),
     );
   }
 }

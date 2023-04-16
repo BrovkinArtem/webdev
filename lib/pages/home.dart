@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:tiatia/pages/containers/container1.dart';
 import 'package:tiatia/utils/constants.dart';
 import 'package:tiatia/widgets/navbar.dart';
 
@@ -17,8 +18,9 @@ class _HomeState extends State<Home> {
     return Scaffold(
       body: SingleChildScrollView(
         child: Container(
+          color: Colors.white,
           child: Column(
-            children: [NavBar()]
+            children: [NavBar(), Container1()]
             ),
         ),
       ),
