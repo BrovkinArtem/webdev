@@ -4,6 +4,8 @@ import 'package:tiatia/main.dart';
 import 'package:tiatia/utils/colors.dart';
 import 'package:tiatia/utils/constants.dart';
 import 'package:tiatia/utils/styles.dart';
+import 'package:tiatia/pages/Authorization/SignUp.dart';
+import 'package:tiatia/pages/Authorization/SignIn.dart';
 
 class NavBar extends StatefulWidget {
   const NavBar({Key? key}) : super(key: key);
@@ -35,8 +37,32 @@ class _NavBarState extends State<NavBar> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Icon(Icons.menu),
-          navLogo() 
+          navLogo(),
+          Container(
+            height: 45,
+            child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [ 
+              ElevatedButton(
+              style: borderedButtonStyle2,
+              onPressed: (){Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => SignIn()),
+                          );},
+              child: Text('Sign in', style: TextStyle(color: AppColors.primary),),
+            ),
+            SizedBox(width: 10),
+            ElevatedButton(
+              style: borderedButtonStyle,
+              onPressed: (){Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => SignUp()),
+                          );},
+              child: Text('Sign up', style: TextStyle(color: AppColors.primary),),
+          )])
+          ),
       ]),
+      
     );
   }
 
@@ -65,17 +91,29 @@ class _NavBarState extends State<NavBar> {
           ),
           Container(
             height: 45,
-            child: ElevatedButton(
-              style: borderedButtonStyle,
-              onPressed: (){},
-              child: Text('Autorization', style: TextStyle(color: AppColors.primary),),
+            child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [ 
+              ElevatedButton(
+              style: borderedButtonStyle2,
+              onPressed: (){Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => SignIn()),
+                          );},
+              child: Text('Sign in', style: TextStyle(color: AppColors.primary),),
             ),
-          )
-
+            SizedBox(width: 10),
+            ElevatedButton(
+              style: borderedButtonStyle,
+              onPressed: (){Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => SignUp()),
+                          );},
+              child: Text('Sign up', style: TextStyle(color: AppColors.primary),),
+          )])
+          ),
         ],
-      ),
-
-    );
+    ));
   }
   Widget navButton(String text) {
     return Container(
@@ -93,7 +131,7 @@ class _NavBarState extends State<NavBar> {
       width: 140,
       height: 140,
       decoration: BoxDecoration(
-        image: DecorationImage(image: AssetImage(logo), fit: BoxFit.cover)),
+        image: DecorationImage(image: AssetImage(logo))),
     );
   }
 }

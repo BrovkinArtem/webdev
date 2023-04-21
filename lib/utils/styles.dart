@@ -8,3 +8,7 @@ ButtonStyle borderedButtonStyle = ButtonStyle(
     side: BorderSide(color: AppColors.primary),
     borderRadius: BorderRadius.circular(10)
   )));
+
+  ButtonStyle borderedButtonStyle2 = ButtonStyle(
+  elevation: MaterialStateProperty.all(0),
+  backgroundColor: MaterialStateProperty.all(Colors.white),);
