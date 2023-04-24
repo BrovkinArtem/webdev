@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:responsive_builder/responsive_builder.dart';
 import 'package:tiatia/utils/colors.dart';
+import 'package:tiatia/utils/constants.dart';
 import 'package:tiatia/pages/Authorization/SignUp.dart';
-import 'package:tiatia/pages/Authorization/SignIn.dart';
 import 'package:tiatia/functions/authFunctions.dart';
 
 import '../../../utils/constants.dart';
@@ -31,7 +31,11 @@ class _SignInState extends State<SignIn> {
       ),
       body: Form(
         key: _formKey,
+        child: Center (
         child: Container(
+          width: 400,
+          alignment: Alignment.center,
+          transformAlignment: Alignment.center,
           padding: EdgeInsets.all(14),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -127,7 +131,8 @@ class _SignInState extends State<SignIn> {
                   child: Text(login
                       ? "Don't have an account? Signup"
                       : "Already have an account? Login"))
-            ],
+              ],
+            ),
           ),
         ),
       ),

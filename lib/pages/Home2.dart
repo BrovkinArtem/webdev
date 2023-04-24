@@ -19,9 +19,13 @@ class _Home2State extends State<Home2> {
               onPressed: () async {
                 await FirebaseAuth.instance.signOut();
               },
-              icon: Icon(Icons.leave_bags_at_home))
+              icon: Icon(Icons.leave_bags_at_home)),
+              IconButton(
+              icon: Icon(Icons.account_circle), // замените на нужный вам логотип
+      onPressed: () {},
+    ),
         ],
-        title: Text('Home'),
+        title: Text('TIA'),
       ),
     );
   }
