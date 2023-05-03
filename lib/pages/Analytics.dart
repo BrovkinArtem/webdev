@@ -2,23 +2,22 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:tiatia/pages/Portfolio.dart';
-import 'package:tiatia/pages/Home.dart';
 import 'package:tiatia/pages/Strategy.dart';
-import 'package:tiatia/pages/Analytics.dart';
+import 'package:tiatia/pages/Home.dart';
 import 'package:tiatia/pages/Account.dart';
 import 'package:tiatia/pages/Securities.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-class Home2 extends StatefulWidget {
-  const Home2({Key? key}) : super(key: key);
+class Analytics extends StatefulWidget {
+  const Analytics({super.key});
 
   @override
-  State<Home2> createState() => _Home2State();
+  State<Analytics> createState() => _AnalyticsState();
 }
 
 
-class _Home2State extends State<Home2> {
+class _AnalyticsState extends State<Analytics> {
 bool isBedtimeOutlined = true;
 
   void _toggleBedtimeIcon() {
@@ -27,7 +26,7 @@ bool isBedtimeOutlined = true;
     });
   }
 
-  final TextEditingController _searchController = TextEditingController();
+final TextEditingController _searchController = TextEditingController();
   List<String> _securities = [];
   FocusNode _searchFocusNode = FocusNode();
   bool _isListVisible = false;
@@ -67,14 +66,6 @@ bool isBedtimeOutlined = true;
     super.dispose();
   }
 
-  void _goToSecurityDetailsPage(String security) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => Securities(),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -94,7 +85,7 @@ bool isBedtimeOutlined = true;
               },
             ),
         ],
-        title: Text('Home'),
+        title: Text('Analytics'),
       ),
       drawer: Drawer(
     child: Column(
@@ -115,25 +106,23 @@ bool isBedtimeOutlined = true;
         ),
         ListTile(
           title: Text('Портфель'),
-          onTap: () {Navigator.push(
+          onTap: () {
+    Navigator.push(
     context,
-    MaterialPageRoute(builder: (context) => Portfolio()),
-  );
+    MaterialPageRoute(builder: (context) => Portfolio())
+    );
           },
         ),
         ListTile(
           title: Text('Аналитика'),
           onTap: () {
-            Navigator.push(
-    context,
-    MaterialPageRoute(builder: (context) => Analytics())
-    );
+            // Обработка нажатия на пункт меню
           },
         ),
         ListTile(
           title: Text('Стратегия'),
           onTap: () {
-          Navigator.push(
+            Navigator.push(
     context,
     MaterialPageRoute(builder: (context) => Strategy())
     );
@@ -158,6 +147,7 @@ bool isBedtimeOutlined = true;
       context,
       MaterialPageRoute(builder: (context) => Home()),
     );
+
       },
       icon: Icon(Icons.exit_to_app),
     ),
@@ -206,17 +196,7 @@ bool isBedtimeOutlined = true;
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 Text(
-'''                                 🐢            Добро пожаловать в Turtle Invest Advisor!
-
-
-⬅ слева находится навигационное меня с основным функционалом приложения
-
-⬆ сверху поиск ценных бумаг для дальнейшего добавления их в портфель
-
-↗ справа вверху ваши уведомления и аккаунт с персональными настройками 
-
-                                                                                                                                   советуем заглянуть туда!
-                  ''',
+                  'Analytics',
                   style: TextStyle(fontSize: 24),
                 ),
               ],

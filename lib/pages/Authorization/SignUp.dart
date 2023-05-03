@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:responsive_builder/responsive_builder.dart';
+import 'package:tiatia/pages/Home2.dart';
 import 'package:tiatia/utils/colors.dart';
 import 'package:tiatia/utils/constants.dart';
 import 'package:tiatia/pages/Authorization/SignIn.dart';
@@ -116,6 +117,10 @@ class _SignUpState extends State<SignUp> {
                             ? AuthServices.signinUser(email, password, context)
                             : AuthServices.signupUser(
                                 email, password, fullname, context);
+                                Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => Home2()),
+    );
                       }
                     },
                     child: Text(login ? 'Login' : 'Signup')),

@@ -1,30 +1,24 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
+import 'package:tiatia/utils/colors.dart';
 import 'package:tiatia/main.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('Тестирование темы приложения', (WidgetTester tester) async {
+    // Запускаем приложение
+    await tester.pumpWidget(MyApp());
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    // Проверяем, что шрифт приложения установлен корректно
+    final titleFinder = find.text('TIA');
+    final titleWidget = titleFinder.evaluate().first.widget as Text;
+    expect(titleWidget.style?.fontFamily, 'Bitter');
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    // Проверяем, что цвета приложения установлены корректно
+    final primaryColor = Theme.of(tester.element(titleFinder)).primaryColor;
+    expect(primaryColor, AppColors.primary);
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    // Проверяем, что освещение приложения установлено корректно
+    final brightness = Theme.of(tester.element(titleFinder)).brightness;
+    expect(brightness, Brightness.light);
   });
 }
