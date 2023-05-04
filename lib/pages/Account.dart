@@ -6,6 +6,7 @@ import 'package:tiatia/pages/Strategy.dart';
 import 'package:tiatia/pages/Home.dart';
 import 'package:tiatia/pages/Analytics.dart';
 import 'package:tiatia/pages/Securities.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter/services.dart';
@@ -17,6 +18,64 @@ class Account extends StatefulWidget {
   State<Account> createState() => _AccountState();
 }
 
+class Portfolio2 {
+  final int portfolioId;
+  final int budget;
+  final int periodisity;
+  final int term;
+  final bool tinkoff;
+  final bool notifications;
+  final String userId;
+
+  Portfolio2({
+    required this.portfolioId,
+    required this.budget,
+    required this.periodisity,
+    required this.term,
+    required this.tinkoff,
+    required this.notifications,
+    required this.userId,
+  });
+
+  Map<String, dynamic> toMap() {
+    return {
+      'portfolio_id': portfolioId,
+      'budget': budget,
+      'periodisity': periodisity,
+      'term': term,
+      'tinkoff': tinkoff,
+      'notifications': notifications,
+      'user_id': userId,
+    };
+  }
+  Future<void> savePortfolio(Portfolio2 portfolio2) async {
+  final docRef = FirebaseFirestore.instance.collection('Portfolios').doc();
+  await docRef.set(portfolio2.toMap());
+}
+
+Future<void> updatePortfolio(Portfolio2 portfolio2) async {
+  final result = await FirebaseFirestore.instance
+      .collection('Portfolios')
+      .where('user_id', isEqualTo: portfolio2.userId)
+      .limit(1)
+      .get();
+  if (result.docs.isNotEmpty) {
+    final docRef = result.docs.first.reference;
+    await docRef.update(portfolio2.toMap());
+  } else {
+    await savePortfolio(portfolio2);
+  }
+}
+}
+
+Future<bool> hasPortfolio(String userId) async {
+  final result = await FirebaseFirestore.instance
+      .collection('Portfolios')
+      .where('user_id', isEqualTo: userId)
+      .limit(1)
+      .get();
+  return result.docs.isNotEmpty;
+}
 
 class _AccountState extends State<Account> {
 bool isBedtimeOutlined = true;
@@ -73,6 +132,7 @@ final TextEditingController _searchController = TextEditingController();
     _searchController.dispose();
     super.dispose();
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -299,7 +359,32 @@ SwitchListTile(
       _isNotifEnabled = value;
     });
   },
-),
+),ElevatedButton(
+  onPressed: () async {
+    final budget = int.tryParse(budgetController.text) ?? 0;
+    final periodisity = int.tryParse(periodController.text) ?? 0;
+    final term = int.tryParse(srokController.text) ?? 0;
+    User? currentUser = FirebaseAuth.instance.currentUser;
+    final Portfolio = Portfolio2(
+      portfolioId: 1, // TODO: заменить на реальный идентификатор портфеля
+      budget: budget,
+      periodisity: periodisity,
+      term: term,
+      tinkoff: _isTinkoffEnabled,
+      notifications: _isNotifEnabled,
+      userId: currentUser!.uid,
+    );
+  await Portfolio.updatePortfolio(Portfolio);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Портфель сохранен')),
+    );
+    
+  },style: ElevatedButton.styleFrom(
+      textStyle: TextStyle(fontSize: 20),
+      padding: EdgeInsets.all(16),
+  ),
+  child: Text('Сохранить портфель'),
+)
       ],
     ),
   ),

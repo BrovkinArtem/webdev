@@ -6,6 +6,8 @@ import 'package:tiatia/pages/Strategy.dart';
 import 'package:tiatia/pages/Analytics.dart';
 import 'package:tiatia/pages/Account.dart';
 import 'package:tiatia/pages/Securities.dart';
+import 'package:intl/intl.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -28,9 +30,12 @@ bool isBedtimeOutlined = true;
 
 final TextEditingController _searchController = TextEditingController();
   List<String> _securities = [];
+  List<DocumentSnapshot> _securities2 = [];
+  DocumentSnapshot? _selectedSecurity2;
   FocusNode _searchFocusNode = FocusNode();
   bool _isListVisible = false;
   String _selectedSecurity = "";
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   Future<void> fetchSecurities(String query) async {
   final response = await http.get(Uri.parse(
