@@ -117,9 +117,9 @@ class _SignInState extends State<SignIn> {
                             : AuthServices.signupUser(
                                 email, password, fullname, context);
                                 Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => Home2()),
-    );
+                                context,
+                                MaterialPageRoute(builder: (context) => Home2()),
+                              );
                       }
                     },
                     child: Text(login ? 'Login' : 'Signup')),

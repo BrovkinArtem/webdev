@@ -365,8 +365,14 @@ SwitchListTile(
     final periodisity = int.tryParse(periodController.text) ?? 0;
     final term = int.tryParse(srokController.text) ?? 0;
     User? currentUser = FirebaseAuth.instance.currentUser;
+    final userDoc = await FirebaseFirestore.instance
+    .collection('users')
+    .doc(currentUser!.uid)
+    .get();
+
+    final portfolioId = userDoc.data()?['portfolio_id'] ?? 0;
     final Portfolio = Portfolio2(
-      portfolioId: 1, // TODO: заменить на реальный идентификатор портфеля
+      portfolioId: portfolioId, // TODO: заменить на реальный идентификатор портфеля
       budget: budget,
       periodisity: periodisity,
       term: term,

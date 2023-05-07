@@ -36,6 +36,7 @@ final TextEditingController _searchController = TextEditingController();
   bool _isListVisible = false;
   String _selectedSecurity = "";
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final currentUser = FirebaseAuth.instance.currentUser;
 
   Future<void> fetchSecurities(String query) async {
   final response = await http.get(Uri.parse(

@@ -1,10 +1,15 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class FirestoreServices {
-  static saveUser(String name, email, uid) async {
+  static Future<void> saveUser(String name, email, uid) async {
+    final userCountSnapshot =
+        await FirebaseFirestore.instance.collection('users').get();
+
+    final userCount = userCountSnapshot.docs.length;
+
     await FirebaseFirestore.instance
         .collection('users')
         .doc(uid)
-        .set({'email': email, 'name': name});
+        .set({'email': email, 'name': name, 'portfolio_id': userCount + 1});
   }
 }
