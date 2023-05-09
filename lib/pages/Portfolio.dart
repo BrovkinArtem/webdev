@@ -25,6 +25,11 @@ bool isBedtimeOutlined = true;
   void _toggleBedtimeIcon() {
     setState(() {
       isBedtimeOutlined = !isBedtimeOutlined;
+      if (isBedtimeOutlined) {
+      // для светлой темы
+    } else {
+      // для темной темы
+    }
     });
   }
 
@@ -36,7 +41,6 @@ final TextEditingController _searchController = TextEditingController();
   bool _isListVisible = false;
   String _selectedSecurity = "";
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final currentUser = FirebaseAuth.instance.currentUser;
 
   Future<void> fetchSecurities(String query) async {
   final response = await http.get(Uri.parse(
@@ -168,47 +172,561 @@ final TextEditingController _searchController = TextEditingController();
     Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 250.0, vertical: 16.0),
-          child: TextField(
-            controller: _searchController,
-            onChanged: (query) {
-              if (query.isEmpty) {
-                setState(() {
-                  _securities = [];
-                });
-              } else {
-                fetchSecurities(query);
-              }
-            },
-            decoration: InputDecoration(
-              hintText: 'Поиск ценных бумаг',
-              prefixIcon: Icon(Icons.search),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
+        Expanded(
+  child: FutureBuilder<QuerySnapshot>(
+    future: FirebaseFirestore.instance
+      .collection('users')
+      .doc(FirebaseAuth.instance.currentUser!.uid)
+      .collection('securities')
+      .get(),
+    builder: (context, snapshot) {
+      if (snapshot.connectionState == ConnectionState.waiting) {
+        return Center(
+          child: CircularProgressIndicator(),
+        );
+      }
+      if (snapshot.hasError) {
+        return Text('Ошибка получения данных: ${snapshot.error}');
+      }
+      if (snapshot.data == null || snapshot.data!.docs.isEmpty) {
+        return Container(
+          alignment: Alignment.center,
+          child: Text(
+            'У вас нет ценных бумаг, воспользуйтесь поиском',
+            style: TextStyle(fontSize: 24),
+          ),
+        );
+      }
+      final tickerDocs = snapshot.data!.docs;
+      List<String> tickers = [];
+      List<int> amounts = [];
+      List<double> boughtPrices = [];
+      List<String> terms = [];
+      for (var tickerDoc in tickerDocs) {
+        tickers.add(tickerDoc['ticker']);
+        amounts.add(tickerDoc['amount']);
+        boughtPrices.add(tickerDoc['bought']);
+        terms.add(tickerDoc['term']);
+      }
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 250.0, vertical: 16.0),
+            child: TextField(
+              controller: _searchController,
+              onChanged: (query) {
+                if (query.isEmpty) {
+                  setState(() {
+                    _securities = [];
+                  });
+                } else {
+                  fetchSecurities(query);
+                }
+              },
+              decoration: InputDecoration(
+                hintText: 'Поиск ценных бумаг',
+                prefixIcon: Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
               ),
             ),
           ),
+          Expanded(
+            child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 250.0, vertical: 50.0),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(45),
+                color: Colors.white,
+                border: Border.all(color: Colors.black, width: 1),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Text(
+                    'Portfolio',
+                    style: TextStyle(fontSize: 24),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      Text(
+                        'Ticker',
+                        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        'Amount',
+                        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        'Bought',
+                        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        'Term',
+                        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        '                                            ',
+                        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                  for (int i = 0; i < tickers.length; i++)
+  Dismissible(
+    key: Key(tickers[i]), // уникальный ключ для каждого Dismissible
+    onDismissed: (direction) async {
+      // Логика удаления ценной бумаги
+await FirebaseFirestore.instance
+    .collection('users')
+    .doc(FirebaseAuth.instance.currentUser!.uid)
+    .collection('securities')
+    .doc(tickerDocs[i].id) // получаем DocumentReference по индексу i
+    .delete(); // удаляем документ
+
+// Обновляем названия и ID всех документов
+final securities = await FirebaseFirestore.instance
+    .collection('users')
+    .doc(FirebaseAuth.instance.currentUser!.uid)
+    .collection('securities')
+    .get();
+
+int id = 1; // Новое значение ID для первого документа
+for (final security in securities.docs) {
+  // Получаем данные документа
+  final data = security.data();
+  // Удаляем старый документ
+  await security.reference.delete();
+  
+  // Создаем новый документ с нужным названием и обновленным полем securities_id
+  final newDocName = '$id';
+  final newDocRef = FirebaseFirestore.instance
+      .collection('users')
+      .doc(FirebaseAuth.instance.currentUser!.uid)
+      .collection('securities')
+      .doc(newDocName);
+  await newDocRef.set({...data, 'securities_id': id});
+
+  id++;
+}
+setState(() {
+      // перезагружаем данные, чтобы обновить отображение
+      tickers.removeAt(i);
+      amounts.removeAt(i);
+      boughtPrices.removeAt(i);
+      terms.removeAt(i);
+    });
+    },
+    background: Container(
+      color: Colors.red,
+      alignment: Alignment.centerRight,
+      padding: const EdgeInsets.only(right: 20.0),
+      child: Icon(
+        Icons.delete,
+        color: Colors.white,
+      ),
+    ),
+    secondaryBackground: Container(
+      color: Colors.red,
+      alignment: Alignment.centerLeft,
+      padding: const EdgeInsets.only(left: 20.0),
+      child: Icon(
+        Icons.delete,
+        color: Colors.white,
+      ),
+    ),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        Text(
+          tickers[i],
+          style: TextStyle(fontSize: 24),
         ),
-        Expanded(
-          child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 250.0, vertical: 50.0),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(45),
-              color: Colors.white,
-              border: Border.all(color: Colors.black, width: 1),
+        Text(
+  amounts[i].toString(),
+  style: TextStyle(fontSize: 24),
+),
+IconButton(
+  onPressed: () async {
+    final TextEditingController controller = TextEditingController();
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Изменить количество'),
+          content: TextField(
+            controller: controller,
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(
+              hintText: 'Введите новое количество',
             ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                Text(
-                  'Portfolio',
-                  style: TextStyle(fontSize: 24),
-                ),
-              ],
+            // Валидация для ввода только чисел
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+          ),
+          actions: <Widget>[
+            FlatButton(
+              child: Text('Отмена'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            FlatButton(
+              child: Text('Изменить'),
+              onPressed: () async {
+                // Получаем новое значение количества
+                final newAmount = int.tryParse(controller.text);
+                if (newAmount != null) {
+                  // Обновляем значение количества в базе данных
+                  await FirebaseFirestore.instance
+                    .collection('users')
+                    .doc(FirebaseAuth.instance.currentUser!.uid)
+                    .collection('securities')
+                    .doc(tickerDocs[i].id)
+                    .update({'amount': newAmount});
+                  // Обновляем отображение
+                  setState(() {
+                    amounts[i] = newAmount;
+                  });
+                } else {
+                  // Выводим сообщение об ошибке в случае некорректного ввода
+                  showDialog(
+                    context: context,
+                    builder: (context) {
+                      return AlertDialog(
+                        title: Text('Ошибка'),
+                        content: Text('Введите число'),
+                        actions: <Widget>[
+                          FlatButton(
+                            child: Text('Ок'),
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                }
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  },
+  icon: Icon(Icons.edit),
+),
+        Text(
+  boughtPrices[i].toString(),
+  style: TextStyle(fontSize: 24),
+),
+IconButton(
+  onPressed: () async {
+    final TextEditingController controller = TextEditingController();
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Изменить количество'),
+          content: TextField(
+            controller: controller,
+            keyboardType: TextInputType.number,
+            inputFormatters: <TextInputFormatter>[
+              FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
+            ],
+            decoration: InputDecoration(
+              hintText: 'Введите новое количество',
             ),
           ),
-        ),
+          actions: <Widget>[
+            FlatButton(
+              child: Text('Отмена'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            FlatButton(
+              child: Text('Изменить'),
+              onPressed: () async {
+                final newBoughtPrices = double.tryParse(controller.text);
+                if (newBoughtPrices != null) {
+                  if (newBoughtPrices <= amounts[i]) {
+                    await FirebaseFirestore.instance
+                      .collection('users')
+                      .doc(FirebaseAuth.instance.currentUser!.uid)
+                      .collection('securities')
+                      .doc(tickerDocs[i].id)
+                      .update({'bought': newBoughtPrices});
+                    setState(() {
+                      boughtPrices[i] = newBoughtPrices;
+                    });
+                    Navigator.of(context).pop();
+                  } else {
+                    showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: Text('Ошибка'),
+                        content: Text('Введенное число больше amount'),
+                        actions: <Widget>[
+                          FlatButton(
+                            child: Text('Ок'),
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+                } else {
+                  showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: Text('Ошибка'),
+                      content: Text('Введите число.'),
+                      actions: <Widget>[
+                        FlatButton(
+                          child: Text('Ок'),
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                        ),
+                      ],
+                    ),
+                  );
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
+    if (boughtPrices[i] == amounts[i]) {
+      bool delete = await showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text('Вы уверены?'),
+            actions: <Widget>[
+              FlatButton(
+                child: Text('Нет'),
+                onPressed: () async {
+                  Navigator.of(context).pop(false);
+                  await FirebaseFirestore.instance
+                      .collection('users')
+                      .doc(FirebaseAuth.instance.currentUser!.uid)
+                      .collection('securities')
+                      .doc(tickerDocs[i].id)
+                      .update({'bought': 0});
+                    setState(() {
+                      boughtPrices[i] = 0;
+                    });
+                },
+              ),
+              FlatButton(
+                child: Text('Да'),
+                onPressed: () async {
+                  Navigator.of(context).pop(true);
+                },
+              ),
+            ],
+          );
+        },
+      );
+      if (delete) {
+        final security = tickerDocs[i];
+    // Получаем данные документа
+    final data = security.data();
+    // Удаляем старый документ
+    await security.reference.delete();
+  
+    // Перебираем все документы и перенастраиваем их id и название документа
+    int id = 1;
+    final securities = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(FirebaseAuth.instance.currentUser!.uid)
+        .collection('securities')
+        .get();
+    for (final security in securities.docs) {
+      // Получаем данные документа
+      final data = security.data();
+      // Удаляем старый документ
+      await security.reference.delete();
+  
+      // Создаем новый документ с нужным названием и обновленным полем securities_id
+      final newDocName = '$id';
+      final newDocRef = FirebaseFirestore.instance
+          .collection('users')
+          .doc(FirebaseAuth.instance.currentUser!.uid)
+          .collection('securities')
+          .doc(newDocName);
+      await newDocRef.set({...data, 'securities_id': id});
+
+      id++;
+    }
+
+    setState(() {
+      // перезагружаем данные, чтобы обновить отображение
+      tickers.removeAt(i);
+      amounts.removeAt(i);
+      boughtPrices.removeAt(i);
+      terms.removeAt(i);
+    });
+}}
+},
+icon: Icon(Icons.edit),
+),
+        Text(
+  terms[i],
+  style: TextStyle(fontSize: 24),
+),
+IconButton(
+  onPressed: () async {
+    final TextEditingController controller = TextEditingController();
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Изменить дату'),
+          content: TextField(
+            controller: controller,
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(
+              hintText: 'Введите новую дату (dd.MM.yyyy)',
+            ),
+          ),
+          actions: <Widget>[
+            FlatButton(
+              child: Text('Отмена'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            FlatButton(
+              child: Text('Изменить'),
+              onPressed: () async {
+                final newTerm = controller.text;
+                final dateFormat = DateFormat('dd.MM.yyyy');
+                final currentDate = DateTime.now();
+
+                try {
+                  final enteredDate = dateFormat.parseStrict(newTerm);
+                  if (enteredDate.isAfter(currentDate)) {
+                    await FirebaseFirestore.instance
+                        .collection('users')
+                        .doc(FirebaseAuth.instance.currentUser!.uid)
+                        .collection('securities')
+                        .doc(tickerDocs[i].id)
+                        .update({'term': newTerm});
+                    setState(() {
+                      terms[i] = newTerm;
+                    });
+                    Navigator.of(context).pop();
+                  } else {
+                    showDialog(
+                      context: context,
+                      builder: (context) {
+                        return AlertDialog(
+                          title: Text('Ошибка'),
+                          content: Text('Дата должна быть больше сегодняшней'),
+                          actions: <Widget>[
+                            FlatButton(
+                              child: Text('ОК'),
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  }
+                } on FormatException {
+                  showDialog(
+                    context: context,
+                    builder: (context) {
+                      return AlertDialog(
+                        title: Text('Ошибка'),
+                        content: Text('Неправильный формат даты'),
+                        actions: <Widget>[
+                          FlatButton(
+                            child: Text('ОК'),
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
+  },
+  icon: Icon(Icons.edit),
+),
+        ElevatedButton(
+  onPressed: () async {
+    final security = tickerDocs[i];
+    // Получаем данные документа
+    final data = security.data();
+    // Удаляем старый документ
+    await security.reference.delete();
+  
+    // Перебираем все документы и перенастраиваем их id и название документа
+    int id = 1;
+    final securities = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(FirebaseAuth.instance.currentUser!.uid)
+        .collection('securities')
+        .get();
+    for (final security in securities.docs) {
+      // Получаем данные документа
+      final data = security.data();
+      // Удаляем старый документ
+      await security.reference.delete();
+  
+      // Создаем новый документ с нужным названием и обновленным полем securities_id
+      final newDocName = '$id';
+      final newDocRef = FirebaseFirestore.instance
+          .collection('users')
+          .doc(FirebaseAuth.instance.currentUser!.uid)
+          .collection('securities')
+          .doc(newDocName);
+      await newDocRef.set({...data, 'securities_id': id});
+
+      id++;
+    }
+
+    setState(() {
+      // перезагружаем данные, чтобы обновить отображение
+      tickers.removeAt(i);
+      amounts.removeAt(i);
+      boughtPrices.removeAt(i);
+      terms.removeAt(i);
+    });
+  },
+  child: Text('Удалить'),
+),
+      ],
+    ),
+  ),
+  
+                ],
+              ),
+            ),
+          ),
+        ],
+      );
+    },
+  ),
+)
       ],
     ),
     if (_securities.isNotEmpty)
@@ -250,10 +768,10 @@ final TextEditingController _searchController = TextEditingController();
                               _selectedSecurity = security;
                             });
                             Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                            builder: (context) => Securities(),
-                            ),
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => Securities(),
+                              ),
                             );
                           },
                           child: ListTile(

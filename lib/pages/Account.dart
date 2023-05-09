@@ -83,6 +83,11 @@ bool isBedtimeOutlined = true;
   void _toggleBedtimeIcon() {
     setState(() {
       isBedtimeOutlined = !isBedtimeOutlined;
+      if (isBedtimeOutlined) {
+      // для светлой темы
+    } else {
+      // для темной темы
+    }
     });
   }
 
@@ -91,7 +96,7 @@ final TextEditingController _searchController = TextEditingController();
   String _value = 'Yes';
   FocusNode _searchFocusNode = FocusNode();
   bool _isListVisible = false;
-  final budgetController = TextEditingController(text: '30000');
+  final budgetController = TextEditingController(text: '3000');
   final periodController = TextEditingController(text: '2');
   final srokController = TextEditingController(text: '40');
   bool _isTinkoffEnabled = true;

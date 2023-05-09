@@ -24,6 +24,11 @@ bool isBedtimeOutlined = true;
   void _toggleBedtimeIcon() {
     setState(() {
       isBedtimeOutlined = !isBedtimeOutlined;
+      if (isBedtimeOutlined) {
+      // для светлой темы
+    } else {
+      // для темной темы
+    }
     });
   }
 

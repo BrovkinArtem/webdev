@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -8,6 +9,7 @@ import 'package:tiatia/pages/Account.dart';
 import 'package:tiatia/pages/Securities.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:intl/intl.dart';
 
 class Strategy extends StatefulWidget {
   const Strategy({super.key});
@@ -23,6 +25,11 @@ bool isBedtimeOutlined = true;
   void _toggleBedtimeIcon() {
     setState(() {
       isBedtimeOutlined = !isBedtimeOutlined;
+      if (isBedtimeOutlined) {
+      // для светлой темы
+    } else {
+      // для темной темы
+    }
     });
   }
 
@@ -162,47 +169,152 @@ final TextEditingController _searchController = TextEditingController();
     Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 250.0, vertical: 16.0),
-          child: TextField(
-            controller: _searchController,
-            onChanged: (query) {
-              if (query.isEmpty) {
-                setState(() {
-                  _securities = [];
-                });
-              } else {
-                fetchSecurities(query);
-              }
-            },
-            decoration: InputDecoration(
-              hintText: 'Поиск ценных бумаг',
-              prefixIcon: Icon(Icons.search),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
-            ),
-          ),
-        ),
         Expanded(
-          child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 250.0, vertical: 50.0),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(45),
-              color: Colors.white,
-              border: Border.all(color: Colors.black, width: 1),
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                Text(
-                  'Strategy',
-                  style: TextStyle(fontSize: 24),
-                ),
-              ],
-            ),
+  child: FutureBuilder<QuerySnapshot>(
+    future: FirebaseFirestore.instance
+      .collection('users')
+      .doc(FirebaseAuth.instance.currentUser!.uid)
+      .collection('securities')
+      .get(),
+    builder: (context, snapshot) {
+      if (snapshot.connectionState == ConnectionState.waiting) {
+        return Center(
+          child: CircularProgressIndicator(),
+        );
+      }
+      if (snapshot.hasError) {
+        return Text('Ошибка получения данных: ${snapshot.error}');
+      }
+      if (snapshot.data == null || snapshot.data!.docs.isEmpty) {
+        return Container(
+          alignment: Alignment.center,
+          child: Text(
+            'У вас нет ценных бумаг, воспользуйтесь поиском',
+            style: TextStyle(fontSize: 24),
           ),
-        ),
+        );
+      }
+      final tickerDocs = snapshot.data!.docs;
+      List<String> tickers = [];
+      List<int> amounts = [];
+      List<double> boughtPrices = [];
+      List<String> terms = [];
+      for (var tickerDoc in tickerDocs) {
+        tickers.add(tickerDoc['ticker']);
+        amounts.add(tickerDoc['amount']);
+        boughtPrices.add(tickerDoc['bought']);
+        terms.add(tickerDoc['term']);
+      }
+      final portfolioDoc = snapshot.data!.docs.first;
+      //ПЕРЕДЕЛАТЬ АЛГОРИТМ!!!!!!!!!!!!!!!!!!!!!!!!!
+      // Считаем текущий день инвестирования
+      final currentDate = DateTime.now();
+
+      // Считаем бюджет на портфель
+      var budget = 3000; // пример
+
+      // Считаем срок портфеля
+      final portfolioDuration = Duration(days: 40); // пример
+      
+      // Считаем периодичность
+      final investmentPeriod = Duration(days: 2); // пример
+
+      // Формируем рекомендации по закупкам для бумаг со сроком
+      List<String> recommendationsWithTerm = [];
+
+      for (var i = 0; i < tickers.length; i++) {
+        if (terms[i].isNotEmpty) {
+          final termDate = DateFormat('dd.MM.yyyy').parse(terms[i]);
+          final periodsLeft = termDate.difference(currentDate).inDays ~/ investmentPeriod.inDays;
+
+          if (periodsLeft > 0) {
+            final stocksPerPeriod = amounts[i] ~/ periodsLeft;
+            final stockPrice = boughtPrices[i] * 1.1; // пример
+            final totalStocksPrice = stocksPerPeriod * stockPrice;
+
+            if (totalStocksPrice <= budget) {
+              budget -= totalStocksPrice as int;
+              final nextPurchaseDate = currentDate.add(Duration(days: periodsLeft * investmentPeriod.inDays));
+              recommendationsWithTerm.add('${tickers[i]} - $stocksPerPeriod - ${nextPurchaseDate.toIso8601String()}');
+            }
+          }
+        }
+      }
+
+      // Формируем рекомендации по закупкам для бумаг без срока
+  List<String> recommendationsWithoutTerm = [];
+  for (var i = 0; i < tickers.length; i++) {
+    if (terms[i].isEmpty) {
+      final stockPrice = boughtPrices[i] * 1.1; // пример
+      final stocksAmount = (budget / stockPrice).floor();
+
+      if (stocksAmount > 0) {
+        budget -= (stocksAmount * stockPrice) as int;
+        recommendationsWithoutTerm.add('${tickers[i]} - $stocksAmount');
+      }
+    }
+  }
+
+  // Возвращаем список рекомендаций
+  final allRecommendations = [...recommendationsWithTerm, ...recommendationsWithoutTerm];
+
+  return ListView.builder(
+  itemCount: allRecommendations.length,
+  itemBuilder: (context, index) {
+    final recommendation = allRecommendations[index].split(' - ');
+    final ticker = recommendation[0];
+    final amountOrStocksPerPeriod = recommendation[1];
+    final nextDate = recommendation.length > 2 ? DateTime.parse(recommendation[2]) : null;
+
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            'Ticker',
+            style: TextStyle(fontWeight: FontWeight.bold),
+            textAlign: TextAlign.center,
+          ),
+          SizedBox(height: 4.0),
+          Text(
+            ticker,
+            textAlign: TextAlign.center,
+          ),
+          SizedBox(height: 8.0),
+          Text(
+            'Recommendation',
+            style: TextStyle(fontWeight: FontWeight.bold),
+            textAlign: TextAlign.center,
+          ),
+          SizedBox(height: 4.0),
+          Text(
+            amountOrStocksPerPeriod,
+            textAlign: TextAlign.center,
+          ),
+          if (nextDate != null) ...[
+            SizedBox(height: 8.0),
+            Text(
+              'Next Date',
+              style: TextStyle(fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: 4.0),
+            Text(
+              DateFormat.yMMMd().format(nextDate),
+              textAlign: TextAlign.center,
+            ),
+          ],
+          SizedBox(height: 8.0),
+          Divider(),
+        ],
+      ),
+    );
+  },
+);
+},
+),
+)
       ],
     ),
     if (_securities.isNotEmpty)
@@ -244,10 +356,10 @@ final TextEditingController _searchController = TextEditingController();
                               _selectedSecurity = security;
                             });
                             Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                            builder: (context) => Securities(),
-                            ),
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => Securities(),
+                              ),
                             );
                           },
                           child: ListTile(

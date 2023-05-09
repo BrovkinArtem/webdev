@@ -37,6 +37,7 @@ dependencies:
   http: 
   firebase_auth_mocks: 
   firebase_database:
+  fl_chart: ^0.36.2
 
 
   # The following adds the Cupertino Icons font to your application.

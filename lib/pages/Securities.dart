@@ -10,6 +10,7 @@ import 'package:tiatia/pages/Account.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:uuid/uuid.dart';
 
 class Securities extends StatefulWidget {
   const Securities({super.key});
