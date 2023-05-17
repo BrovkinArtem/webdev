@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'package:tiatia/pages/Portfolio.dart';
 import 'package:tiatia/pages/Analytics.dart';
 import 'package:tiatia/pages/Home.dart';
@@ -18,6 +19,16 @@ class Strategy extends StatefulWidget {
   State<Strategy> createState() => _StrategyState();
 }
 
+class NotificationsProvider extends ChangeNotifier {
+  bool _notificationsRead = false;
+
+  bool get notificationsRead => _notificationsRead;
+
+  void markNotificationsAsRead() {
+    _notificationsRead = true;
+    notifyListeners();
+  }
+}
 
 class _StrategyState extends State<Strategy> {
 bool isBedtimeOutlined = true;
@@ -38,6 +49,7 @@ final TextEditingController _searchController = TextEditingController();
   FocusNode _searchFocusNode = FocusNode();
   bool _isListVisible = false;
   String _selectedSecurity = "";
+  bool notificationsRead = false;
 
   Future<void> fetchSecurities(String query) async {
   final response = await http.get(Uri.parse(
@@ -78,10 +90,35 @@ final TextEditingController _searchController = TextEditingController();
     return Scaffold(
       appBar: AppBar(
         actions: [
-          IconButton(
-              icon: Icon(Icons.notifications),
-              onPressed: () {},
-            ),
+          PopupMenuButton(
+  icon: Icon(
+    Icons.notifications,
+    color: notificationsRead ? null : Colors.red, // Изменение цвета иконки, если уведомления не прочитаны
+  ),
+  itemBuilder: (context) => [
+    PopupMenuItem(
+      child: Text('Уведомление 1'),
+      value: 1,
+    ),
+    PopupMenuItem(
+      child: Text('Уведомление 2'),
+      value: 2,
+    ),
+    // Добавьте другие элементы меню с уведомлениями
+  ],
+  onSelected: (value) {
+    // Обработка выбранного уведомления
+    if (value == 1) {
+      // Действия для уведомления 1
+    } else if (value == 2) {
+      // Действия для уведомления 2
+    }
+
+    setState(() {
+      notificationsRead = true; // Устанавливаем флаг, что уведомления были прочитаны
+    });
+  },
+),
           IconButton(
               icon: Icon(Icons.account_circle),
               onPressed: () {
@@ -140,6 +177,16 @@ final TextEditingController _searchController = TextEditingController();
       Row(
   mainAxisAlignment: MainAxisAlignment.center,
   children: [
+    IconButton(
+      onPressed: () async {
+      },
+      icon: Icon(Icons.folder),
+    ),
+    IconButton(
+      onPressed: () async {
+      },
+      icon: Icon(Icons.info),
+    ),
     IconButton(
       padding: const EdgeInsets.symmetric(vertical: 32.0),
       icon: Icon(isBedtimeOutlined
@@ -319,10 +366,10 @@ final TextEditingController _searchController = TextEditingController();
     ),
     if (_securities.isNotEmpty)
       Positioned(
-        top: 20,
-        left: 0,
-        right: 0,
-        bottom: 0,
+              top: 70,
+              left: 250,
+              right: 250,
+              bottom: 650,
         child: GestureDetector(
           onTap: () {
             setState(() {
@@ -330,10 +377,11 @@ final TextEditingController _searchController = TextEditingController();
             });
           },
           child: Container(
+            color: Colors.white,
             child: Align(
               alignment: Alignment.topCenter,
               child: Padding(
-                padding: const EdgeInsets.only(top: 50.0),
+                padding: const EdgeInsets.only(top: 0.0),
                 child: SizedBox(
                   width: MediaQuery.of(context).size.width * 3 / 4,
                   child: Container(

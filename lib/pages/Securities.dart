@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'package:tiatia/pages/Portfolio.dart';
 import 'package:tiatia/pages/Strategy.dart';
 import 'package:tiatia/pages/Home.dart';
@@ -21,6 +22,16 @@ class Securities extends StatefulWidget {
   State<Securities> createState() => _SecuritiesState();
 }
 
+class NotificationsProvider extends ChangeNotifier {
+  bool _notificationsRead = false;
+
+  bool get notificationsRead => _notificationsRead;
+
+  void markNotificationsAsRead() {
+    _notificationsRead = true;
+    notifyListeners();
+  }
+}
 
 class _SecuritiesState extends State<Securities> {
 bool isBedtimeOutlined = true;
@@ -39,6 +50,7 @@ FocusNode _searchFocusNode = FocusNode();
 bool _isListVisible = false;
 final String security = "";
 String _selectedPrice = '';
+bool notificationsRead = false;
 
 Future<void> fetchSecurities(String query) async {
   final response = await http.get(Uri.parse(
@@ -119,7 +131,7 @@ void _showAddSecurityDialog(BuildContext context) async{
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('Цена: $_selectedPrice'),
+            Text('Цена: ${double.parse(_selectedPrice).toStringAsFixed(2)} \$'),
             TextField(
               controller: _quantityController,
               keyboardType: TextInputType.number,
@@ -264,10 +276,35 @@ if (securitiesSnapshot.docs.isEmpty) {
     return Scaffold(
       appBar: AppBar(
         actions: [
-          IconButton(
-              icon: Icon(Icons.notifications),
-              onPressed: () {},
-            ),
+          PopupMenuButton(
+  icon: Icon(
+    Icons.notifications,
+    color: notificationsRead ? null : Colors.red, // Изменение цвета иконки, если уведомления не прочитаны
+  ),
+  itemBuilder: (context) => [
+    PopupMenuItem(
+      child: Text('Уведомление 1'),
+      value: 1,
+    ),
+    PopupMenuItem(
+      child: Text('Уведомление 2'),
+      value: 2,
+    ),
+    // Добавьте другие элементы меню с уведомлениями
+  ],
+  onSelected: (value) {
+    // Обработка выбранного уведомления
+    if (value == 1) {
+      // Действия для уведомления 1
+    } else if (value == 2) {
+      // Действия для уведомления 2
+    }
+
+    setState(() {
+      notificationsRead = true; // Устанавливаем флаг, что уведомления были прочитаны
+    });
+  },
+),
           IconButton(
               icon: Icon(Icons.account_circle),
               onPressed: () {
@@ -330,6 +367,16 @@ if (securitiesSnapshot.docs.isEmpty) {
   mainAxisAlignment: MainAxisAlignment.center,
   children: [
     IconButton(
+      onPressed: () async {
+      },
+      icon: Icon(Icons.folder),
+    ),
+    IconButton(
+      onPressed: () async {
+      },
+      icon: Icon(Icons.info),
+    ),
+    IconButton(
       padding: const EdgeInsets.symmetric(vertical: 32.0),
       icon: Icon(isBedtimeOutlined
           ? Icons.bedtime_outlined
@@ -374,6 +421,8 @@ if (securitiesSnapshot.docs.isEmpty) {
             decoration: InputDecoration(
               hintText: 'Поиск ценных бумаг',
               prefixIcon: Icon(Icons.search),
+              filled: true,
+              fillColor: Colors.white,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
               ),
@@ -381,49 +430,51 @@ if (securitiesSnapshot.docs.isEmpty) {
           ),
         ),
         Expanded(
-          child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 250.0, vertical: 50.0),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(45),
-              color: Colors.white,
-              border: Border.all(color: Colors.black, width: 1),
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                Text(
+  child: Container(
+    margin: const EdgeInsets.symmetric(horizontal: 250.0, vertical: 50.0),
+    decoration: BoxDecoration(
+      borderRadius: BorderRadius.circular(45),
+      color: Colors.white,
+      border: Border.all(color: Colors.black, width: 1),
+    ),
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        Text(
           _selectedSecurity != null ? '$_selectedSecurity' : '',
           style: TextStyle(fontSize: 24),
         ),
-          if (_selectedPrice != null && _selectedPrice.isNotEmpty)
-  Text(
-    '${double.tryParse(_selectedPrice) ?? 0.0}',
-    style: TextStyle(fontSize: 24),
-  ),
-  FlatButton(
+        if (_selectedPrice != null && _selectedPrice.isNotEmpty)
+          Text(
+            '${double.tryParse(_selectedPrice) ?? 0.0} \$',
+            style: TextStyle(fontSize: 24),
+          ),
+        ElevatedButton(
   onPressed: _selectedSecurity == 'Securities' ? null : () {
     _showAddSecurityDialog(context);
   },
+  style: ElevatedButton.styleFrom(
+    primary: Colors.blue, // Цвет фона кнопки
+    onPrimary: Colors.white, // Цвет текста
+    onSurface: Colors.grey, // Цвет фона кнопки в отключенном состоянии
+  ),
   child: Text(
     'Добавить',
     style: TextStyle(fontSize: 18),
   ),
-  color: Colors.blue,
-  textColor: Colors.white,
-  disabledColor: Colors.grey,
 ),
-              ],
-            ),
-          ),
-        ),
+      ],
+    ),
+  ),
+),
       ],
     ),
     if (_securities.isNotEmpty)
       Positioned(
-              top: 20,
-              left: 0,
-              right: 0,
-              bottom: 0,
+              top: 70,
+              left: 250,
+              right: 250,
+              bottom: 650,
               child: GestureDetector(
                 onTap: () {
             setState(() {
@@ -431,46 +482,47 @@ if (securitiesSnapshot.docs.isEmpty) {
               fetchSecurityPrice(_selectedSecurity);
             });
           },
-                child: Container(
-                  child: Align(
-                    alignment: Alignment.topCenter,
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: 50.0),
-                      child: SizedBox(
-                        width: MediaQuery.of(context).size.width * 3 / 4,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            border: Border.all(
-                              color: Colors.grey,
-                              width: 1,
-                    ),
-              borderRadius: BorderRadius.circular(10),
-              ),
-              child: ListView.builder(
-                shrinkWrap: true,
-                physics: NeverScrollableScrollPhysics(),
-                itemCount: _securities.length > 4 ? 4 : _securities.length,
-                itemBuilder: (context, index) {
-                final security = _securities[index];
-                return GestureDetector(
-  onTap: () async {
-    setState(() {
-      _selectedSecurity = security;
-      _isListVisible = false;
-    });
-    await fetchSecurityPrice(security);
-  },
-  child: ListTile(
-    title: Text(security),
-  ),
-);
-                },
-              ),
+  child: Container(
+  color: Colors.white,
+  child: Align(
+    alignment: Alignment.topCenter,
+    child: Padding(
+      padding: const EdgeInsets.only(top: 0.0),
+      child: SizedBox(
+        width: MediaQuery.of(context).size.width * 3 / 4,
+        child: Container(
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: Colors.grey,
+              width: 1,
             ),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: ListView.builder(
+            shrinkWrap: true,
+            physics: NeverScrollableScrollPhysics(),
+            itemCount: _securities.length > 4 ? 4 : _securities.length,
+            itemBuilder: (context, index) {
+              final security = _securities[index];
+              return GestureDetector(
+                onTap: () async {
+                  setState(() {
+                    _selectedSecurity = security;
+                    _isListVisible = false;
+                  });
+                  await fetchSecurityPrice(security);
+                },
+                child: ListTile(
+                  title: Text(security),
+                ),
+              );
+            },
           ),
         ),
       ),
     ),
+  ),
+),
   ),),
   ],
 ),);

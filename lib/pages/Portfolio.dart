@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'package:tiatia/pages/Home.dart';
 import 'package:tiatia/pages/Strategy.dart';
 import 'package:tiatia/pages/Analytics.dart';
@@ -8,6 +9,7 @@ import 'package:tiatia/pages/Account.dart';
 import 'package:tiatia/pages/Securities.dart';
 import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -18,6 +20,16 @@ class Portfolio extends StatefulWidget {
   State<Portfolio> createState() => _PortfolioState();
 }
 
+class NotificationsProvider extends ChangeNotifier {
+  bool _notificationsRead = false;
+
+  bool get notificationsRead => _notificationsRead;
+
+  void markNotificationsAsRead() {
+    _notificationsRead = true;
+    notifyListeners();
+  }
+}
 
 class _PortfolioState extends State<Portfolio> {
 bool isBedtimeOutlined = true;
@@ -41,6 +53,7 @@ final TextEditingController _searchController = TextEditingController();
   bool _isListVisible = false;
   String _selectedSecurity = "";
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  bool notificationsRead = false;
 
   Future<void> fetchSecurities(String query) async {
   final response = await http.get(Uri.parse(
@@ -81,10 +94,35 @@ final TextEditingController _searchController = TextEditingController();
     return Scaffold(
       appBar: AppBar(
         actions: [
-          IconButton(
-              icon: Icon(Icons.notifications),
-              onPressed: () {},
-            ),
+          PopupMenuButton(
+  icon: Icon(
+    Icons.notifications,
+    color: notificationsRead ? null : Colors.red, // Изменение цвета иконки, если уведомления не прочитаны
+  ),
+  itemBuilder: (context) => [
+    PopupMenuItem(
+      child: Text('Уведомление 1'),
+      value: 1,
+    ),
+    PopupMenuItem(
+      child: Text('Уведомление 2'),
+      value: 2,
+    ),
+    // Добавьте другие элементы меню с уведомлениями
+  ],
+  onSelected: (value) {
+    // Обработка выбранного уведомления
+    if (value == 1) {
+      // Действия для уведомления 1
+    } else if (value == 2) {
+      // Действия для уведомления 2
+    }
+
+    setState(() {
+      notificationsRead = true; // Устанавливаем флаг, что уведомления были прочитаны
+    });
+  },
+),
           IconButton(
               icon: Icon(Icons.account_circle),
               onPressed: () {
@@ -143,6 +181,16 @@ final TextEditingController _searchController = TextEditingController();
       Row(
   mainAxisAlignment: MainAxisAlignment.center,
   children: [
+    IconButton(
+      onPressed: () async {
+      },
+      icon: Icon(Icons.folder),
+    ),
+    IconButton(
+      onPressed: () async {
+      },
+      icon: Icon(Icons.info),
+    ),
     IconButton(
       padding: const EdgeInsets.symmetric(vertical: 32.0),
       icon: Icon(isBedtimeOutlined
@@ -337,12 +385,23 @@ setState(() {
       ),
     ),
     child: Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        Text(
-          tickers[i],
-          style: TextStyle(fontSize: 24),
-        ),
+  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+  children: [
+    InkWell(
+      onTap: () async {
+        String ticker = tickers[i];
+        String url = 'https://www.tinkoff.ru/invest/stocks/$ticker/';
+        if (await canLaunch(url)) {
+          await launch(url);
+        } else {
+          // Обработка случая, когда не удалось открыть URL-адрес
+        }
+      },
+      child: Text(
+        tickers[i],
+        style: TextStyle(fontSize: 24, color: Colors.blue),
+      ),
+    ),
         Text(
   amounts[i].toString(),
   style: TextStyle(fontSize: 24),
@@ -365,13 +424,13 @@ IconButton(
             inputFormatters: [FilteringTextInputFormatter.digitsOnly],
           ),
           actions: <Widget>[
-            FlatButton(
+            TextButton(
               child: Text('Отмена'),
               onPressed: () {
                 Navigator.of(context).pop();
               },
             ),
-            FlatButton(
+            TextButton(
               child: Text('Изменить'),
               onPressed: () async {
                 // Получаем новое значение количества
@@ -397,7 +456,7 @@ IconButton(
                         title: Text('Ошибка'),
                         content: Text('Введите число'),
                         actions: <Widget>[
-                          FlatButton(
+                          TextButton(
                             child: Text('Ок'),
                             onPressed: () {
                               Navigator.of(context).pop();
@@ -441,13 +500,13 @@ IconButton(
             ),
           ),
           actions: <Widget>[
-            FlatButton(
+            TextButton(
               child: Text('Отмена'),
               onPressed: () {
                 Navigator.of(context).pop();
               },
             ),
-            FlatButton(
+            TextButton(
               child: Text('Изменить'),
               onPressed: () async {
                 final newBoughtPrices = double.tryParse(controller.text);
@@ -470,7 +529,7 @@ IconButton(
                         title: Text('Ошибка'),
                         content: Text('Введенное число больше amount'),
                         actions: <Widget>[
-                          FlatButton(
+                          TextButton(
                             child: Text('Ок'),
                             onPressed: () {
                               Navigator.of(context).pop();
@@ -487,7 +546,7 @@ IconButton(
                       title: Text('Ошибка'),
                       content: Text('Введите число.'),
                       actions: <Widget>[
-                        FlatButton(
+                        TextButton(
                           child: Text('Ок'),
                           onPressed: () {
                             Navigator.of(context).pop();
@@ -510,7 +569,7 @@ IconButton(
           return AlertDialog(
             title: Text('Вы уверены?'),
             actions: <Widget>[
-              FlatButton(
+              TextButton(
                 child: Text('Нет'),
                 onPressed: () async {
                   Navigator.of(context).pop(false);
@@ -525,7 +584,7 @@ IconButton(
                     });
                 },
               ),
-              FlatButton(
+              TextButton(
                 child: Text('Да'),
                 onPressed: () async {
                   Navigator.of(context).pop(true);
@@ -598,13 +657,13 @@ IconButton(
             ),
           ),
           actions: <Widget>[
-            FlatButton(
+            TextButton(
               child: Text('Отмена'),
               onPressed: () {
                 Navigator.of(context).pop();
               },
             ),
-            FlatButton(
+            TextButton(
               child: Text('Изменить'),
               onPressed: () async {
                 final newTerm = controller.text;
@@ -632,7 +691,7 @@ IconButton(
                           title: Text('Ошибка'),
                           content: Text('Дата должна быть больше сегодняшней'),
                           actions: <Widget>[
-                            FlatButton(
+                            TextButton(
                               child: Text('ОК'),
                               onPressed: () {
                                 Navigator.of(context).pop();
@@ -651,7 +710,7 @@ IconButton(
                         title: Text('Ошибка'),
                         content: Text('Неправильный формат даты'),
                         actions: <Widget>[
-                          FlatButton(
+                          TextButton(
                             child: Text('ОК'),
                             onPressed: () {
                               Navigator.of(context).pop();
@@ -731,10 +790,10 @@ IconButton(
     ),
     if (_securities.isNotEmpty)
       Positioned(
-        top: 20,
-        left: 0,
-        right: 0,
-        bottom: 0,
+              top: 70,
+              left: 250,
+              right: 250,
+              bottom: 650,
         child: GestureDetector(
           onTap: () {
             setState(() {
@@ -742,10 +801,11 @@ IconButton(
             });
           },
           child: Container(
+            color: Colors.white,
             child: Align(
               alignment: Alignment.topCenter,
               child: Padding(
-                padding: const EdgeInsets.only(top: 50.0),
+                padding: const EdgeInsets.only(top: 0.0),
                 child: SizedBox(
                   width: MediaQuery.of(context).size.width * 3 / 4,
                   child: Container(

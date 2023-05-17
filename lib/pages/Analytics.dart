@@ -1,6 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'package:tiatia/pages/Portfolio.dart';
 import 'package:tiatia/pages/Strategy.dart';
 import 'package:tiatia/pages/Home.dart';
@@ -16,6 +18,16 @@ class Analytics extends StatefulWidget {
   State<Analytics> createState() => _AnalyticsState();
 }
 
+class NotificationsProvider extends ChangeNotifier {
+  bool _notificationsRead = false;
+
+  bool get notificationsRead => _notificationsRead;
+
+  void markNotificationsAsRead() {
+    _notificationsRead = true;
+    notifyListeners();
+  }
+}
 
 class _AnalyticsState extends State<Analytics> {
 bool isBedtimeOutlined = true;
@@ -31,6 +43,10 @@ final TextEditingController _searchController = TextEditingController();
   FocusNode _searchFocusNode = FocusNode();
   bool _isListVisible = false;
   String _selectedSecurity = "";
+  String _selectedPrice = '';
+  String _selectedTicker = '';
+  bool notificationsRead = false;
+
 
   Future<void> fetchSecurities(String query) async {
   final response = await http.get(Uri.parse(
@@ -43,6 +59,38 @@ final TextEditingController _searchController = TextEditingController();
         .toSet()
         .toList());
   });
+}
+
+  Future<double> fetchSecurityPrice(String symbol) async {
+  final response = await http.get(Uri.parse(
+      'https://api.twelvedata.com/price?symbol=$symbol&apikey=eccd7ef0256643e8a8407a19bdeca078'));
+  final data = json.decode(response.body);
+  final price = data['price'].toString();
+  if (price.isNotEmpty) {
+    return double.parse(price);
+  }
+  return 0.0; // Return a default value if the price is empty
+}
+
+  Future<double> calculatePortfolioPrice() async {
+  double portfolioPrice = 0.0;
+
+  final securitiesSnapshot = await FirebaseFirestore.instance
+      .collection('users')
+      .doc(FirebaseAuth.instance.currentUser!.uid)
+      .collection('securities')
+      .get();
+
+  for (final securityDoc in securitiesSnapshot.docs) {
+    final securityData = securityDoc.data();
+    final ticker = securityData['ticker'] as String;
+    final bought = securityData['bought'] as double;
+
+    final price = await fetchSecurityPrice(ticker);
+    portfolioPrice += price * bought;
+  }
+
+  return double.parse(portfolioPrice.toStringAsFixed(2));
 }
 
   @override
@@ -71,10 +119,35 @@ final TextEditingController _searchController = TextEditingController();
     return Scaffold(
       appBar: AppBar(
         actions: [
-          IconButton(
-              icon: Icon(Icons.notifications),
-              onPressed: () {},
-            ),
+          PopupMenuButton(
+  icon: Icon(
+    Icons.notifications,
+    color: notificationsRead ? null : Colors.red, // Изменение цвета иконки, если уведомления не прочитаны
+  ),
+  itemBuilder: (context) => [
+    PopupMenuItem(
+      child: Text('Уведомление 1'),
+      value: 1,
+    ),
+    PopupMenuItem(
+      child: Text('Уведомление 2'),
+      value: 2,
+    ),
+    // Добавьте другие элементы меню с уведомлениями
+  ],
+  onSelected: (value) {
+    // Обработка выбранного уведомления
+    if (value == 1) {
+      // Действия для уведомления 1
+    } else if (value == 2) {
+      // Действия для уведомления 2
+    }
+
+    setState(() {
+      notificationsRead = true; // Устанавливаем флаг, что уведомления были прочитаны
+    });
+  },
+),
           IconButton(
               icon: Icon(Icons.account_circle),
               onPressed: () {
@@ -134,6 +207,16 @@ final TextEditingController _searchController = TextEditingController();
   mainAxisAlignment: MainAxisAlignment.center,
   children: [
     IconButton(
+      onPressed: () async {
+      },
+      icon: Icon(Icons.folder),
+    ),
+    IconButton(
+      onPressed: () async {
+      },
+      icon: Icon(Icons.info),
+    ),
+    IconButton(
       padding: const EdgeInsets.symmetric(vertical: 32.0),
       icon: Icon(isBedtimeOutlined
           ? Icons.bedtime_outlined
@@ -184,33 +267,161 @@ final TextEditingController _searchController = TextEditingController();
             ),
           ),
         ),
-        Expanded(
-          child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 250.0, vertical: 50.0),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(45),
-              color: Colors.white,
-              border: Border.all(color: Colors.black, width: 1),
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                Text(
-                  'Analytics',
-                  style: TextStyle(fontSize: 24),
-                ),
-              ],
-            ),
+        DefaultTabController(
+  length: 2, // Количество вкладок
+  child: Expanded(
+    child: Container(
+      margin: const EdgeInsets.symmetric(horizontal: 250.0, vertical: 50.0),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(45),
+        color: Colors.white,
+        border: Border.all(color: Colors.black, width: 1),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          TabBar(
+            tabs: [
+              Tab(text: 'Аналитика портфеля'),
+              Tab(text: 'Аналитика ценных бумаг'),
+            ],
           ),
+          Expanded(
+  child: TabBarView(
+    children: [
+      // Содержимое первой вкладки "Аналитика портфеля"
+      FutureBuilder<double>(
+        future: calculatePortfolioPrice(),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            final portfolioPrice = snapshot.data!;
+            return Center(
+              child: Text(
+                'Цена портфеля: $portfolioPrice \$',
+                style: TextStyle(fontSize: 48),
+              ),
+            );
+          } else if (snapshot.hasError) {
+            return Center(
+              child: Text(
+                'Ошибка: ${snapshot.error}',
+                style: TextStyle(fontSize: 48),
+              ),
+            );
+          } else {
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+        },
+      ),
+      // Содержимое второй вкладки "Аналитика ценных бумаг"
+      FutureBuilder<QuerySnapshot<Map<String, dynamic>>>(
+  future: FirebaseFirestore.instance
+      .collection('users')
+      .doc(FirebaseAuth.instance.currentUser!.uid)
+      .collection('securities')
+      .get(),
+  builder: (context, snapshot) {
+    if (snapshot.connectionState == ConnectionState.waiting) {
+      return Center(
+        child: CircularProgressIndicator(),
+      );
+    } else if (snapshot.hasError) {
+      return Center(
+        child: Text(
+          'Ошибка: ${snapshot.error}',
+          style: TextStyle(fontSize: 48),
         ),
+      );
+    } else if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+      return Center(
+        child: Text(
+          'Нет доступных ценных бумаг',
+          style: TextStyle(fontSize: 48),
+        ),
+      );
+    } else {
+      final securitiesSnapshot = snapshot.data!;
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          DropdownButton<String>(
+            value: _selectedTicker,
+            hint: Text('Выберите ценную бумагу'), // Initial hint text
+            onChanged: (String? newValue) {
+              setState(() {
+                _selectedTicker = newValue!;
+              });
+            },
+            items: [
+              DropdownMenuItem<String>(
+                value: '',
+                child: Text('Выберите ценную бумагу'),
+              ),
+              ...securitiesSnapshot.docs.map((DocumentSnapshot document) {
+                final securityData = document.data() as Map<String, dynamic>;
+                final ticker = securityData['ticker'] as String;
+                return DropdownMenuItem<String>(
+                  value: ticker,
+                  child: Text(ticker),
+                );
+              }).toList(),
+            ],
+          ),
+          if (_selectedTicker.isNotEmpty)
+            FutureBuilder<double>(
+              future: fetchSecurityPrice(_selectedTicker),
+              builder: (context, snapshot) {
+                if (snapshot.hasData) {
+                  final selectedPrice = snapshot.data!;
+                  final selectedSecurityDocument = securitiesSnapshot.docs.firstWhere(
+                    (document) => document['ticker'] == _selectedTicker,
+                  );
+                  final bought = selectedSecurityDocument['bought'] as double;
+                  final totalPrice = (selectedPrice * bought).toStringAsFixed(2);
+
+                  return Center(
+                    child: Text(
+                      '$totalPrice \$',
+                      style: TextStyle(fontSize: 48),
+                    ),
+                  );
+                } else if (snapshot.hasError) {
+                  return Center(
+                    child: Text(
+                      'Ошибка: ${snapshot.error}',
+                      style: TextStyle(fontSize: 48),
+                    ),
+                  );
+                } else {
+                  return Center(
+                    child: CircularProgressIndicator(),
+                  );
+                }
+              },
+            ),
+        ],
+      );
+    }
+  },
+),
+    ],
+  ),
+),
+        ],
+      ),
+    ),
+  ),
+)
       ],
     ),
     if (_securities.isNotEmpty)
       Positioned(
-        top: 20,
-        left: 0,
-        right: 0,
-        bottom: 0,
+              top: 70,
+              left: 250,
+              right: 250,
+              bottom: 650,
         child: GestureDetector(
           onTap: () {
             setState(() {
@@ -218,10 +429,11 @@ final TextEditingController _searchController = TextEditingController();
             });
           },
           child: Container(
+            color: Colors.white,
             child: Align(
               alignment: Alignment.topCenter,
               child: Padding(
-                padding: const EdgeInsets.only(top: 50.0),
+                padding: const EdgeInsets.only(top: 0.0),
                 child: SizedBox(
                   width: MediaQuery.of(context).size.width * 3 / 4,
                   child: Container(

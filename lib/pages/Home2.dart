@@ -37,6 +37,7 @@ bool isBedtimeOutlined = true;
   FocusNode _searchFocusNode = FocusNode();
   bool _isListVisible = false;
   String _selectedSecurity = "";
+  bool notificationsRead = false;
 
   Future<void> fetchSecurities(String query) async {
   final response = await http.get(Uri.parse(
@@ -85,10 +86,35 @@ bool isBedtimeOutlined = true;
     return Scaffold(
       appBar: AppBar(
         actions: [
-          IconButton(
-              icon: Icon(Icons.notifications),
-              onPressed: () {},
-            ),
+          PopupMenuButton(
+  icon: Icon(
+    Icons.notifications,
+    color: notificationsRead ? null : Colors.red, // Изменение цвета иконки, если уведомления не прочитаны
+  ),
+  itemBuilder: (context) => [
+    PopupMenuItem(
+      child: Text('Уведомление 1'),
+      value: 1,
+    ),
+    PopupMenuItem(
+      child: Text('Уведомление 2'),
+      value: 2,
+    ),
+    // Добавьте другие элементы меню с уведомлениями
+  ],
+  onSelected: (value) {
+    // Обработка выбранного уведомления
+    if (value == 1) {
+      // Действия для уведомления 1
+    } else if (value == 2) {
+      // Действия для уведомления 2
+    }
+
+    setState(() {
+      notificationsRead = true; // Устанавливаем флаг, что уведомления были прочитаны
+    });
+  },
+),
           IconButton(
               icon: Icon(Icons.account_circle),
               onPressed: () {
@@ -149,6 +175,16 @@ bool isBedtimeOutlined = true;
       Row(
   mainAxisAlignment: MainAxisAlignment.center,
   children: [
+    IconButton(
+      onPressed: () async {
+      },
+      icon: Icon(Icons.folder),
+    ),
+    IconButton(
+      onPressed: () async {
+      },
+      icon: Icon(Icons.info),
+    ),
     IconButton(
       padding: const EdgeInsets.symmetric(vertical: 32.0),
       icon: Icon(isBedtimeOutlined
@@ -232,10 +268,10 @@ bool isBedtimeOutlined = true;
     ),
     if (_securities.isNotEmpty)
       Positioned(
-        top: 20,
-        left: 0,
-        right: 0,
-        bottom: 0,
+              top: 70,
+              left: 250,
+              right: 250,
+              bottom: 650,
         child: GestureDetector(
           onTap: () {
             setState(() {
@@ -243,10 +279,11 @@ bool isBedtimeOutlined = true;
             });
           },
           child: Container(
+            color: Colors.white,
             child: Align(
               alignment: Alignment.topCenter,
               child: Padding(
-                padding: const EdgeInsets.only(top: 50.0),
+                padding: const EdgeInsets.only(top: 0.0),
                 child: SizedBox(
                   width: MediaQuery.of(context).size.width * 3 / 4,
                   child: Container(
