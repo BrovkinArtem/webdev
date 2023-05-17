@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:tiatia/pages/Home2.dart';
 import 'package:tiatia/pages/Portfolio.dart';
 import 'package:tiatia/pages/Analytics.dart';
 import 'package:tiatia/pages/Home.dart';
@@ -93,16 +94,12 @@ final TextEditingController _searchController = TextEditingController();
           PopupMenuButton(
   icon: Icon(
     Icons.notifications,
-    color: notificationsRead ? null : Colors.red, // Изменение цвета иконки, если уведомления не прочитаны
+    color: notificationsRead ? null : Colors.white, // Изменение цвета иконки, если уведомления не прочитаны
   ),
   itemBuilder: (context) => [
     PopupMenuItem(
-      child: Text('Уведомление 1'),
+      child: Text('Привет! здесь уведомления :)'),
       value: 1,
-    ),
-    PopupMenuItem(
-      child: Text('Уведомление 2'),
-      value: 2,
     ),
     // Добавьте другие элементы меню с уведомлениями
   ],
@@ -186,6 +183,14 @@ final TextEditingController _searchController = TextEditingController();
       onPressed: () async {
       },
       icon: Icon(Icons.info),
+    ),
+    IconButton(
+      onPressed: () async {
+        Navigator.push(
+    context,
+    MaterialPageRoute(builder: (context) => Home2()));
+      },
+      icon: Icon(Icons.home),
     ),
     IconButton(
       padding: const EdgeInsets.symmetric(vertical: 32.0),
@@ -314,6 +319,7 @@ final TextEditingController _searchController = TextEditingController();
     final nextDate = recommendation.length > 2 ? DateTime.parse(recommendation[2]) : null;
 
     return Container(
+      color: Color(0xFFE6F4F1),
       padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -366,63 +372,46 @@ final TextEditingController _searchController = TextEditingController();
     ),
     if (_securities.isNotEmpty)
       Positioned(
-              top: 70,
-              left: 250,
-              right: 250,
-              bottom: 650,
-        child: GestureDetector(
-          onTap: () {
-            setState(() {
-              _selectedSecurity = _securities[0];
-            });
-          },
-          child: Container(
+        top: MediaQuery.of(context).size.height * 0.077, // Отступ сверху
+        left: MediaQuery.of(context).size.width * 0.2, // Отступ слева
+        right: MediaQuery.of(context).size.width * 0.2, // Отступ справа
+        bottom: MediaQuery.of(context).size.height * 0.65, // Отступ снизу
+        child: Container(
+          width: MediaQuery.of(context).size.width * 3 / 4,
+          decoration: BoxDecoration(
             color: Colors.white,
-            child: Align(
-              alignment: Alignment.topCenter,
-              child: Padding(
-                padding: const EdgeInsets.only(top: 0.0),
-                child: SizedBox(
-                  width: MediaQuery.of(context).size.width * 3 / 4,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: Colors.grey,
-                        width: 1,
-                      ),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: ListView.builder(
-                      shrinkWrap: true,
-                      physics: NeverScrollableScrollPhysics(),
-                      itemCount: _securities.length > 4 ? 4 : _securities.length,
-                      itemBuilder: (BuildContext context, int index) {
-                        final security = _securities[index];
-                        return GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              _selectedSecurity = security;
-                            });
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => Securities(),
-                              ),
-                            );
-                          },
-                          child: ListTile(
-                            title: Text(security),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ),
-              ),
+            border: Border.all(
+              color: Colors.grey,
+              width: 1,
             ),
+            borderRadius: BorderRadius.circular(10),
           ),
-        ),
+          child: ListView.builder(
+            shrinkWrap: true,
+            physics: NeverScrollableScrollPhysics(),
+            itemCount: _securities.length > 4 ? 4 : _securities.length,
+            itemBuilder: (BuildContext context, int index) {
+              final security = _securities[index];
+              return GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _selectedSecurity = security;
+                  });
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => Securities(),
       ),
+    );
+  },
+  child: ListTile(
+    title: Text(security),
+                    )
+                  );
+                }
+              )
+            )
+          )
   ],
 ),);
   }

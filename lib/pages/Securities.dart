@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:tiatia/pages/Home2.dart';
 import 'package:tiatia/pages/Portfolio.dart';
 import 'package:tiatia/pages/Strategy.dart';
 import 'package:tiatia/pages/Home.dart';
@@ -279,16 +280,12 @@ if (securitiesSnapshot.docs.isEmpty) {
           PopupMenuButton(
   icon: Icon(
     Icons.notifications,
-    color: notificationsRead ? null : Colors.red, // Изменение цвета иконки, если уведомления не прочитаны
+    color: notificationsRead ? null : Colors.white, // Изменение цвета иконки, если уведомления не прочитаны
   ),
   itemBuilder: (context) => [
     PopupMenuItem(
-      child: Text('Уведомление 1'),
+      child: Text('Привет! здесь уведомления :)'),
       value: 1,
-    ),
-    PopupMenuItem(
-      child: Text('Уведомление 2'),
-      value: 2,
     ),
     // Добавьте другие элементы меню с уведомлениями
   ],
@@ -377,6 +374,14 @@ if (securitiesSnapshot.docs.isEmpty) {
       icon: Icon(Icons.info),
     ),
     IconButton(
+      onPressed: () async {
+        Navigator.push(
+    context,
+    MaterialPageRoute(builder: (context) => Home2()));
+      },
+      icon: Icon(Icons.home),
+    ),
+    IconButton(
       padding: const EdgeInsets.symmetric(vertical: 32.0),
       icon: Icon(isBedtimeOutlined
           ? Icons.bedtime_outlined
@@ -406,7 +411,10 @@ if (securitiesSnapshot.docs.isEmpty) {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 250.0, vertical: 16.0),
+          padding: EdgeInsets.symmetric(
+            horizontal: MediaQuery.of(context).size.width * 0.2,
+            vertical: MediaQuery.of(context).size.height * 0.02,
+          ),
           child: TextField(
             controller: _searchController,
             onChanged: (query) {
@@ -430,101 +438,98 @@ if (securitiesSnapshot.docs.isEmpty) {
           ),
         ),
         Expanded(
-  child: Container(
-    margin: const EdgeInsets.symmetric(horizontal: 250.0, vertical: 50.0),
-    decoration: BoxDecoration(
-      borderRadius: BorderRadius.circular(45),
-      color: Colors.white,
-      border: Border.all(color: Colors.black, width: 1),
-    ),
-    child: Column(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        Text(
-          _selectedSecurity != null ? '$_selectedSecurity' : '',
-          style: TextStyle(fontSize: 24),
-        ),
-        if (_selectedPrice != null && _selectedPrice.isNotEmpty)
-          Text(
-            '${double.tryParse(_selectedPrice) ?? 0.0} \$',
-            style: TextStyle(fontSize: 24),
+          child: Container(
+            margin: EdgeInsets.symmetric(
+              horizontal: MediaQuery.of(context).size.width * 0.2,
+              vertical: MediaQuery.of(context).size.height * 0.05,
+            ),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(45),
+              color: Color(0xFFE6F4F1),
+              border: Border.all(color: Colors.black, width: 1),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                Text(
+                  _selectedSecurity != null ? '$_selectedSecurity' : '',
+                  style: TextStyle(fontSize: 24),
+                ),
+                if (_selectedPrice != null && _selectedPrice.isNotEmpty)
+                  Text(
+                    '${double.tryParse(_selectedPrice) ?? 0.0} \$',
+                    style: TextStyle(fontSize: 24),
+                  ),
+                ElevatedButton(
+                  onPressed: _selectedSecurity == 'Securities' ? null : () {
+                    _showAddSecurityDialog(context);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    primary: Colors.blue,
+                    onPrimary: Colors.white,
+                    onSurface: Colors.grey,
+                  ),
+                  child: Text(
+                    'Добавить',
+                    style: TextStyle(fontSize: 18),
+                  ),
+                ),
+              ],
+            ),
           ),
-        ElevatedButton(
-  onPressed: _selectedSecurity == 'Securities' ? null : () {
-    _showAddSecurityDialog(context);
-  },
-  style: ElevatedButton.styleFrom(
-    primary: Colors.blue, // Цвет фона кнопки
-    onPrimary: Colors.white, // Цвет текста
-    onSurface: Colors.grey, // Цвет фона кнопки в отключенном состоянии
-  ),
-  child: Text(
-    'Добавить',
-    style: TextStyle(fontSize: 18),
-  ),
-),
-      ],
-    ),
-  ),
-),
+        ),
       ],
     ),
     if (_securities.isNotEmpty)
       Positioned(
-              top: 70,
-              left: 250,
-              right: 250,
-              bottom: 650,
-              child: GestureDetector(
-                onTap: () {
-            setState(() {
-              _selectedSecurity = _securities[0];
-              fetchSecurityPrice(_selectedSecurity);
-            });
-          },
+  top: MediaQuery.of(context).size.height * 0.077,
+  left: MediaQuery.of(context).size.width * 0.2,
+  right: MediaQuery.of(context).size.width * 0.2,
+  bottom: MediaQuery.of(context).size.height * 0.67,
   child: Container(
-  color: Colors.white,
-  child: Align(
-    alignment: Alignment.topCenter,
-    child: Padding(
-      padding: const EdgeInsets.only(top: 0.0),
-      child: SizedBox(
-        width: MediaQuery.of(context).size.width * 3 / 4,
-        child: Container(
-          decoration: BoxDecoration(
-            border: Border.all(
-              color: Colors.grey,
-              width: 1,
+    color: Colors.white,
+    child: Align(
+      alignment: Alignment.topCenter,
+      child: Padding(
+        padding: EdgeInsets.only(top: 0.0),
+        child: SizedBox(
+          width: MediaQuery.of(context).size.width * 0.75,
+          child: Container(
+            decoration: BoxDecoration(
+              border: Border.all(
+                color: Colors.grey,
+                width: 1,
+              ),
+              borderRadius: BorderRadius.circular(10),
             ),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: ListView.builder(
-            shrinkWrap: true,
-            physics: NeverScrollableScrollPhysics(),
-            itemCount: _securities.length > 4 ? 4 : _securities.length,
-            itemBuilder: (context, index) {
-              final security = _securities[index];
-              return GestureDetector(
-                onTap: () async {
-                  setState(() {
-                    _selectedSecurity = security;
-                    _isListVisible = false;
-                  });
-                  await fetchSecurityPrice(security);
-                },
-                child: ListTile(
-                  title: Text(security),
-                ),
-              );
-            },
+            child: ListView.builder(
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
+              itemCount: _securities.length > 4 ? 4 : _securities.length,
+              itemBuilder: (context, index) {
+                final security = _securities[index];
+                return GestureDetector(
+                  onTap: () async {
+                    setState(() {
+                      _selectedSecurity = security;
+                      _isListVisible = false;
+                    });
+                    await fetchSecurityPrice(security);
+                  },
+                  child: ListTile(
+                    title: Text(security),
+                  ),
+                );
+              },
+            ),
           ),
         ),
       ),
     ),
   ),
-),
-  ),),
-  ],
-),);
+)
+  ]
+  )
+  );
   }
 }

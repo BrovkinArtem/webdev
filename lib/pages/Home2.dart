@@ -93,12 +93,8 @@ bool isBedtimeOutlined = true;
   ),
   itemBuilder: (context) => [
     PopupMenuItem(
-      child: Text('Уведомление 1'),
+      child: Text('Привет! здесь уведомления :)'),
       value: 1,
-    ),
-    PopupMenuItem(
-      child: Text('Уведомление 2'),
-      value: 2,
     ),
     // Добавьте другие элементы меню с уведомлениями
   ],
@@ -186,6 +182,14 @@ bool isBedtimeOutlined = true;
       icon: Icon(Icons.info),
     ),
     IconButton(
+      onPressed: () async {
+        Navigator.push(
+    context,
+    MaterialPageRoute(builder: (context) => Home2()));
+      },
+      icon: Icon(Icons.home),
+    ),
+    IconButton(
       padding: const EdgeInsets.symmetric(vertical: 32.0),
       icon: Icon(isBedtimeOutlined
           ? Icons.bedtime_outlined
@@ -208,13 +212,18 @@ bool isBedtimeOutlined = true;
     ),
   ),
   
-  body: Stack(
+  body: Container(
+      color: Colors.white, // Голубой цвет фона для всего экрана
+      child: Stack(
   children: [
     Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 250.0, vertical: 16.0),
+          padding: EdgeInsets.symmetric(
+            horizontal: MediaQuery.of(context).size.width * 0.2,
+            vertical: MediaQuery.of(context).size.height * 0.02,
+          ),
           child: TextField(
             controller: _searchController,
             onChanged: (query) {
@@ -237,20 +246,26 @@ bool isBedtimeOutlined = true;
         ),
         Expanded(
           child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 250.0, vertical: 50.0),
+            margin: EdgeInsets.symmetric(
+              horizontal: MediaQuery.of(context).size.width * 0.2,
+              vertical: MediaQuery.of(context).size.height * 0.05,
+            ),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(45),
-              color: Colors.white,
+              color: Color(0xFFE6F4F1), // Светло-голубой цвет фона
               border: Border.all(color: Colors.black, width: 1),
             ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                Text(
-'''                                 🐢            Добро пожаловать в Turtle Invest Advisor!
+                Flexible(
+                  child: FittedBox(
+                    fit: BoxFit.fitWidth,
+                    child: Text(
+                      '''                                 🐢            Добро пожаловать в Turtle Invest Advisor!
 
 
-⬅ слева находится навигационное меня с основным функционалом приложения
+⬅ слева находится навигационное меню с основным функционалом приложения
 
 ⬆ сверху поиск ценных бумаг для дальнейшего добавления их в портфель
 
@@ -258,7 +273,9 @@ bool isBedtimeOutlined = true;
 
                                                                                                                                    советуем заглянуть туда!
                   ''',
-                  style: TextStyle(fontSize: 24),
+                      style: TextStyle(fontSize: 24, color: Colors.black), // Чёрный цвет текста
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -268,64 +285,48 @@ bool isBedtimeOutlined = true;
     ),
     if (_securities.isNotEmpty)
       Positioned(
-              top: 70,
-              left: 250,
-              right: 250,
-              bottom: 650,
-        child: GestureDetector(
-          onTap: () {
-            setState(() {
-              _selectedSecurity = _securities[0];
-            });
-          },
-          child: Container(
+        top: MediaQuery.of(context).size.height * 0.077, // Отступ сверху
+        left: MediaQuery.of(context).size.width * 0.2, // Отступ слева
+        right: MediaQuery.of(context).size.width * 0.2, // Отступ справа
+        bottom: MediaQuery.of(context).size.height * 0.65, // Отступ снизу
+        child: Container(
+          width: MediaQuery.of(context).size.width * 3 / 4,
+          decoration: BoxDecoration(
             color: Colors.white,
-            child: Align(
-              alignment: Alignment.topCenter,
-              child: Padding(
-                padding: const EdgeInsets.only(top: 0.0),
-                child: SizedBox(
-                  width: MediaQuery.of(context).size.width * 3 / 4,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: Colors.grey,
-                        width: 1,
-                      ),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: ListView.builder(
-                      shrinkWrap: true,
-                      physics: NeverScrollableScrollPhysics(),
-                      itemCount: _securities.length > 4 ? 4 : _securities.length,
-                      itemBuilder: (BuildContext context, int index) {
-                        final security = _securities[index];
-                        return GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              _selectedSecurity = security;
-                            });
-                            Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                            builder: (context) => Securities(),
-                            ),
-                            );
-                          },
-                          child: ListTile(
-                            title: Text(security),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ),
-              ),
+            border: Border.all(
+              color: Colors.grey,
+              width: 1,
             ),
+            borderRadius: BorderRadius.circular(10),
           ),
-        ),
+          child: ListView.builder(
+            shrinkWrap: true,
+            physics: NeverScrollableScrollPhysics(),
+            itemCount: _securities.length > 4 ? 4 : _securities.length,
+            itemBuilder: (BuildContext context, int index) {
+              final security = _securities[index];
+              return GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _selectedSecurity = security;
+                  });
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => Securities(),
       ),
-  ],
-),);
+    );
+  },
+  child: ListTile(
+    title: Text(security),
+                    )
+                  );
+                }
+              )
+            )
+          )
+        ]
+      )
+    ));
   }
 }

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:tiatia/pages/Home.dart';
+import 'package:tiatia/pages/Home2.dart';
 import 'package:tiatia/pages/Strategy.dart';
 import 'package:tiatia/pages/Analytics.dart';
 import 'package:tiatia/pages/Account.dart';
@@ -68,6 +69,58 @@ final TextEditingController _searchController = TextEditingController();
   });
 }
 
+  double _getButtonTextSize(BoxConstraints constraints) {
+  final screenWidth = MediaQuery.of(context).size.width;
+  final screenHeight = MediaQuery.of(context).size.height;
+  final screenRatio = screenWidth / screenHeight;
+  if (screenRatio > 1) {
+    // Мобильное устройство с шириной меньше 400
+    return 20.0;
+  } else {
+    // Десктоп или мобильное устройство с шириной больше или равной 400
+    return 12.0;
+  }
+}
+
+double _getButtonPadding(BoxConstraints constraints) {
+  final screenWidth = MediaQuery.of(context).size.width;
+  final screenHeight = MediaQuery.of(context).size.height;
+  final screenRatio = screenWidth / screenHeight;
+  if (screenRatio > 1) {
+    // Мобильное устройство с шириной меньше 400
+    return 20.0;
+  } else {
+    // Десктоп или мобильное устройство с шириной больше или равной 400
+    return 12.0;
+  }
+}
+
+  double _getIconSize() {
+  final screenWidth = MediaQuery.of(context).size.width;
+  final screenHeight = MediaQuery.of(context).size.height;
+  final screenRatio = screenWidth / screenHeight;
+  if (screenRatio > 1) {
+    // Десктоп
+    return 24.0;
+  } else {
+    // Мобильное устройство
+    return 20.0;
+  }
+}
+
+  double _getTextSize(double fontSize) {
+  final screenWidth = MediaQuery.of(context).size.width;
+  final screenHeight = MediaQuery.of(context).size.height;
+  final screenRatio = screenWidth / screenHeight;
+  if (screenRatio > 1) {
+    // Десктоп
+    return fontSize;
+  } else {
+    // Мобильное устройство
+    return fontSize * 0.8;
+  }
+}
+
   @override
   void initState() {
     super.initState();
@@ -97,16 +150,12 @@ final TextEditingController _searchController = TextEditingController();
           PopupMenuButton(
   icon: Icon(
     Icons.notifications,
-    color: notificationsRead ? null : Colors.red, // Изменение цвета иконки, если уведомления не прочитаны
+    color: notificationsRead ? null : Colors.white, // Изменение цвета иконки, если уведомления не прочитаны
   ),
   itemBuilder: (context) => [
     PopupMenuItem(
-      child: Text('Уведомление 1'),
+      child: Text('Привет! здесь уведомления :)'),
       value: 1,
-    ),
-    PopupMenuItem(
-      child: Text('Уведомление 2'),
-      value: 2,
     ),
     // Добавьте другие элементы меню с уведомлениями
   ],
@@ -192,6 +241,14 @@ final TextEditingController _searchController = TextEditingController();
       icon: Icon(Icons.info),
     ),
     IconButton(
+      onPressed: () async {
+        Navigator.push(
+    context,
+    MaterialPageRoute(builder: (context) => Home2()));
+      },
+      icon: Icon(Icons.home),
+    ),
+    IconButton(
       padding: const EdgeInsets.symmetric(vertical: 32.0),
       icon: Icon(isBedtimeOutlined
           ? Icons.bedtime_outlined
@@ -260,7 +317,10 @@ final TextEditingController _searchController = TextEditingController();
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 250.0, vertical: 16.0),
+            padding: EdgeInsets.symmetric(
+            horizontal: MediaQuery.of(context).size.width * 0.2,
+            vertical: MediaQuery.of(context).size.height * 0.02,
+          ),
             child: TextField(
               controller: _searchController,
               onChanged: (query) {
@@ -283,10 +343,13 @@ final TextEditingController _searchController = TextEditingController();
           ),
           Expanded(
             child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 250.0, vertical: 50.0),
+              margin: EdgeInsets.symmetric(
+              horizontal: MediaQuery.of(context).size.width * 0.2,
+              vertical: MediaQuery.of(context).size.height * 0.05,
+            ),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(45),
-                color: Colors.white,
+                color: Color(0xFFE6F4F1),
                 border: Border.all(color: Colors.black, width: 1),
               ),
               child: Column(
@@ -294,30 +357,30 @@ final TextEditingController _searchController = TextEditingController();
                 children: [
                   Text(
                     'Portfolio',
-                    style: TextStyle(fontSize: 24),
+                    style: TextStyle(fontSize: _getTextSize(24), fontWeight: FontWeight.bold),
                   ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       Text(
                         'Ticker',
-                        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                        style: TextStyle(fontSize: _getTextSize(24), fontWeight: FontWeight.bold),
                       ),
                       Text(
                         'Amount',
-                        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                        style: TextStyle(fontSize: _getTextSize(24), fontWeight: FontWeight.bold),
                       ),
                       Text(
                         'Bought',
-                        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                        style: TextStyle(fontSize: _getTextSize(24), fontWeight: FontWeight.bold),
                       ),
                       Text(
                         'Term',
-                        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                        style: TextStyle(fontSize: _getTextSize(24), fontWeight: FontWeight.bold),
                       ),
                       Text(
                         '                                            ',
-                        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                        style: TextStyle(fontSize: _getTextSize(24), fontWeight: FontWeight.bold),
                       ),
                     ],
                   ),
@@ -373,6 +436,7 @@ setState(() {
       child: Icon(
         Icons.delete,
         color: Colors.white,
+        size: _getIconSize(),
       ),
     ),
     secondaryBackground: Container(
@@ -382,6 +446,7 @@ setState(() {
       child: Icon(
         Icons.delete,
         color: Colors.white,
+        size: _getIconSize(),
       ),
     ),
     child: Row(
@@ -399,12 +464,12 @@ setState(() {
       },
       child: Text(
         tickers[i],
-        style: TextStyle(fontSize: 24, color: Colors.blue),
+        style: TextStyle(fontSize: _getTextSize(24), fontWeight: FontWeight.bold, color: Colors.lightBlueAccent),
       ),
     ),
         Text(
   amounts[i].toString(),
-  style: TextStyle(fontSize: 24),
+  style: TextStyle(fontSize: _getTextSize(24), fontWeight: FontWeight.bold),
 ),
 IconButton(
   onPressed: () async {
@@ -475,11 +540,11 @@ IconButton(
       },
     );
   },
-  icon: Icon(Icons.edit),
+  icon: Icon(Icons.edit,size: _getIconSize(),),
 ),
         Text(
   boughtPrices[i].toString(),
-  style: TextStyle(fontSize: 24),
+  style: TextStyle(fontSize: _getTextSize(24), fontWeight: FontWeight.bold),
 ),
 IconButton(
   onPressed: () async {
@@ -635,11 +700,11 @@ IconButton(
     });
 }}
 },
-icon: Icon(Icons.edit),
+icon: Icon(Icons.edit, size: _getIconSize(),),
 ),
         Text(
   terms[i],
-  style: TextStyle(fontSize: 24),
+  style: TextStyle(fontSize: _getTextSize(24), fontWeight: FontWeight.bold),
 ),
 IconButton(
   onPressed: () async {
@@ -728,51 +793,30 @@ IconButton(
       },
     );
   },
-  icon: Icon(Icons.edit),
+  icon: Icon(Icons.edit, size: _getIconSize(),),
 ),
-        ElevatedButton(
-  onPressed: () async {
-    final security = tickerDocs[i];
-    // Получаем данные документа
-    final data = security.data();
-    // Удаляем старый документ
-    await security.reference.delete();
-  
-    // Перебираем все документы и перенастраиваем их id и название документа
-    int id = 1;
-    final securities = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(FirebaseAuth.instance.currentUser!.uid)
-        .collection('securities')
-        .get();
-    for (final security in securities.docs) {
-      // Получаем данные документа
-      final data = security.data();
-      // Удаляем старый документ
-      await security.reference.delete();
-  
-      // Создаем новый документ с нужным названием и обновленным полем securities_id
-      final newDocName = '$id';
-      final newDocRef = FirebaseFirestore.instance
-          .collection('users')
-          .doc(FirebaseAuth.instance.currentUser!.uid)
-          .collection('securities')
-          .doc(newDocName);
-      await newDocRef.set({...data, 'securities_id': id});
+        LayoutBuilder(
+  builder: (context, constraints) {
+    return ElevatedButton(
+      onPressed: () async {
+        // Ваша логика обработчика нажатия кнопки
 
-      id++;
-    }
-
-    setState(() {
-      // перезагружаем данные, чтобы обновить отображение
-      tickers.removeAt(i);
-      amounts.removeAt(i);
-      boughtPrices.removeAt(i);
-      terms.removeAt(i);
-    });
+        setState(() {
+          // перезагружаем данные, чтобы обновить отображение
+          tickers.removeAt(i);
+          amounts.removeAt(i);
+          boughtPrices.removeAt(i);
+          terms.removeAt(i);
+        });
+      },
+      style: ElevatedButton.styleFrom(
+        textStyle: TextStyle(fontSize: _getButtonTextSize(constraints)),
+        padding: EdgeInsets.all(_getButtonPadding(constraints)),
+      ),
+      child: Text('Удалить'),
+    );
   },
-  child: Text('Удалить'),
-),
+)
       ],
     ),
   ),
@@ -790,63 +834,46 @@ IconButton(
     ),
     if (_securities.isNotEmpty)
       Positioned(
-              top: 70,
-              left: 250,
-              right: 250,
-              bottom: 650,
-        child: GestureDetector(
-          onTap: () {
-            setState(() {
-              _selectedSecurity = _securities[0];
-            });
-          },
-          child: Container(
+        top: MediaQuery.of(context).size.height * 0.077, // Отступ сверху
+        left: MediaQuery.of(context).size.width * 0.2, // Отступ слева
+        right: MediaQuery.of(context).size.width * 0.2, // Отступ справа
+        bottom: MediaQuery.of(context).size.height * 0.65, // Отступ снизу
+        child: Container(
+          width: MediaQuery.of(context).size.width * 3 / 4,
+          decoration: BoxDecoration(
             color: Colors.white,
-            child: Align(
-              alignment: Alignment.topCenter,
-              child: Padding(
-                padding: const EdgeInsets.only(top: 0.0),
-                child: SizedBox(
-                  width: MediaQuery.of(context).size.width * 3 / 4,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: Colors.grey,
-                        width: 1,
-                      ),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: ListView.builder(
-                      shrinkWrap: true,
-                      physics: NeverScrollableScrollPhysics(),
-                      itemCount: _securities.length > 4 ? 4 : _securities.length,
-                      itemBuilder: (BuildContext context, int index) {
-                        final security = _securities[index];
-                        return GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              _selectedSecurity = security;
-                            });
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => Securities(),
-                              ),
-                            );
-                          },
-                          child: ListTile(
-                            title: Text(security),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ),
-              ),
+            border: Border.all(
+              color: Colors.grey,
+              width: 1,
             ),
+            borderRadius: BorderRadius.circular(10),
           ),
-        ),
+          child: ListView.builder(
+            shrinkWrap: true,
+            physics: NeverScrollableScrollPhysics(),
+            itemCount: _securities.length > 4 ? 4 : _securities.length,
+            itemBuilder: (BuildContext context, int index) {
+              final security = _securities[index];
+              return GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _selectedSecurity = security;
+                  });
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => Securities(),
       ),
+    );
+  },
+  child: ListTile(
+    title: Text(security),
+                    )
+                  );
+                }
+              )
+            )
+          )
   ],
 ),);
   }
