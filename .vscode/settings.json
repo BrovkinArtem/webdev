@@ -1,0 +1,16 @@
+{
+    "prettier.enable": true,
+    "editor.formatOnSave": true, // форматировать код при сохранении файла
+    "editor.formatOnPaste": false, // форматировать при вставке фрагмента кода
+    "editor.defaultFormatter": null,
+    "[javascript]": {
+        "editor.formatOnSave": true,
+        "editor.formatOnPaste": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[markdown]": {
+        "editor.formatOnSave": true,
+        "editor.formatOnPaste": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+    }
+}

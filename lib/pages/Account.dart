@@ -50,24 +50,25 @@ class Portfolio2 {
       'user_id': userId,
     };
   }
-  Future<void> savePortfolio(Portfolio2 portfolio2) async {
-  final docRef = FirebaseFirestore.instance.collection('Portfolios').doc();
-  await docRef.set(portfolio2.toMap());
-}
 
-Future<void> updatePortfolio(Portfolio2 portfolio2) async {
-  final result = await FirebaseFirestore.instance
-      .collection('Portfolios')
-      .where('user_id', isEqualTo: portfolio2.userId)
-      .limit(1)
-      .get();
-  if (result.docs.isNotEmpty) {
-    final docRef = result.docs.first.reference;
-    await docRef.update(portfolio2.toMap());
-  } else {
-    await savePortfolio(portfolio2);
+  Future<void> savePortfolio(Portfolio2 portfolio2) async {
+    final docRef = FirebaseFirestore.instance.collection('Portfolios').doc();
+    await docRef.set(portfolio2.toMap());
   }
-}
+
+  Future<void> updatePortfolio(Portfolio2 portfolio2) async {
+    final result = await FirebaseFirestore.instance
+        .collection('Portfolios')
+        .where('user_id', isEqualTo: portfolio2.userId)
+        .limit(1)
+        .get();
+    if (result.docs.isNotEmpty) {
+      final docRef = result.docs.first.reference;
+      await docRef.update(portfolio2.toMap());
+    } else {
+      await savePortfolio(portfolio2);
+    }
+  }
 }
 
 Future<bool> hasPortfolio(String userId) async {
@@ -91,20 +92,20 @@ class NotificationsProvider extends ChangeNotifier {
 }
 
 class _AccountState extends State<Account> {
-bool isBedtimeOutlined = true;
+  bool isBedtimeOutlined = true;
 
   void _toggleBedtimeIcon() {
     setState(() {
       isBedtimeOutlined = !isBedtimeOutlined;
       if (isBedtimeOutlined) {
-      // для светлой темы
-    } else {
-      // для темной темы
-    }
+        // для светлой темы
+      } else {
+        // для темной темы
+      }
     });
   }
 
-final TextEditingController _searchController = TextEditingController();
+  final TextEditingController _searchController = TextEditingController();
   List<String> _securities = [];
   String _value = 'Yes';
   FocusNode _searchFocusNode = FocusNode();
@@ -117,19 +118,19 @@ final TextEditingController _searchController = TextEditingController();
   String _selectedSecurity = "";
   bool notificationsRead = false;
 
-
   Future<void> fetchSecurities(String query) async {
-  final response = await http.get(Uri.parse(
-      'https://api.twelvedata.com/symbol_search?symbol=$query&exchange=US&apikey=eccd7ef0256643e8a8407a19bdeca078'));
-  final data = json.decode(response.body);
-  setState(() {
-    _securities = List<String>.from(data['data']
-        .where((item) => item['currency'] == 'USD' && item['regularMarketPrice'] != 0)
-        .map((item) => item['symbol'])
-        .toSet()
-        .toList());
-  });
-}
+    final response = await http.get(Uri.parse(
+        'https://api.twelvedata.com/symbol_search?symbol=$query&exchange=US&apikey=eccd7ef0256643e8a8407a19bdeca078'));
+    final data = json.decode(response.body);
+    setState(() {
+      _securities = List<String>.from(data['data']
+          .where((item) =>
+              item['currency'] == 'USD' && item['regularMarketPrice'] != 0)
+          .map((item) => item['symbol'])
+          .toSet()
+          .toList());
+    });
+  }
 
   @override
   void initState() {
@@ -152,355 +153,357 @@ final TextEditingController _searchController = TextEditingController();
     super.dispose();
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         actions: [
           PopupMenuButton(
-  icon: Icon(
-    Icons.notifications,
-    color: notificationsRead ? null : Colors.white, // Изменение цвета иконки, если уведомления не прочитаны
-  ),
-  itemBuilder: (context) => [
-    PopupMenuItem(
-      child: Text('Привет! здесь уведомления :)'),
-      value: 1,
-    ),
-    // другие элементы меню с уведомлениями
-  ],
-  onSelected: (value) {
-    // Обработка выбранного уведомления
-    if (value == 1) {
-      // Действия для уведомления 1
-    } else if (value == 2) {
-      // Действия для уведомления 2
-    }
-
-    setState(() {
-      notificationsRead = true; // Устанавливаем флаг, что уведомления были прочитаны
-    });
-  },
-),
-          IconButton(
-              icon: Icon(Icons.account_circle),
-              onPressed: () {},
+            icon: Icon(
+              Icons.notifications,
+              color: notificationsRead
+                  ? null
+                  : Colors
+                      .white, // Изменение цвета иконки, если уведомления не прочитаны
             ),
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                child: Text('Привет! здесь уведомления :)'),
+                value: 1,
+              ),
+              // другие элементы меню с уведомлениями
+            ],
+            onSelected: (value) {
+              // Обработка выбранного уведомления
+              if (value == 1) {
+                // Действия для уведомления 1
+              } else if (value == 2) {
+                // Действия для уведомления 2
+              }
+
+              setState(() {
+                notificationsRead =
+                    true; // Устанавливаем флаг, что уведомления были прочитаны
+              });
+            },
+          ),
+          IconButton(
+            icon: Icon(Icons.account_circle),
+            onPressed: () {},
+          ),
         ],
-        title: Text('Account'),
+        title: Text('Личный кабинет'),
       ),
       drawer: Drawer(
-    child: Column(
-
-      children: [
-        DrawerHeader(
-          padding: const EdgeInsets.symmetric(horizontal: 116.0, vertical: 20.0),
-          decoration: BoxDecoration(
-            color: Colors.blue,
-          ),
-          child: Text(
-            'Меню',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 24,
-            ),
-          ),
-        ),
-        ListTile(
-          title: Text('Портфель'),
-          onTap: () {
-    Navigator.push(
-    context,
-    MaterialPageRoute(builder: (context) => Portfolio())
-    );
-          },
-        ),
-        ListTile(
-          title: Text('Аналитика'),
-          onTap: () {
-            Navigator.push(
-    context,
-    MaterialPageRoute(builder: (context) => Analytics())
-    );
-          },
-        ),
-        ListTile(
-          title: Text('Стратегия'),
-          onTap: () {
-            Navigator.push(
-    context,
-    MaterialPageRoute(builder: (context) => Strategy())
-    );
-          },),
-          Expanded(
-        child: Container(),
-      ),
-      Row(
-  mainAxisAlignment: MainAxisAlignment.center,
-  children: [
-    IconButton(
-      onPressed: () async {
-      },
-      icon: Icon(Icons.folder),
-    ),
-    IconButton(
-      onPressed: () async {
-      },
-      icon: Icon(Icons.info),
-    ),
-    IconButton(
-      onPressed: () async {
-        Navigator.push(
-    context,
-    MaterialPageRoute(builder: (context) => Home2()));
-      },
-      icon: Icon(Icons.home),
-    ),
-    IconButton(
-      padding: const EdgeInsets.symmetric(vertical: 32.0),
-      icon: Icon(isBedtimeOutlined
-          ? Icons.bedtime_outlined
-          : Icons.bedtime_rounded),
-      onPressed: _toggleBedtimeIcon,
-    ),
-    IconButton(
-      onPressed: () async {
-        await FirebaseAuth.instance.signOut();
-        Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => Home()),
-    );
-
-      },
-      icon: Icon(Icons.exit_to_app),
-    ),
-  ],
-),
-      ],
-    ),
-  ),
-  
-  body: Stack(
-  children: [
-    Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: MediaQuery.of(context).size.width * 0.2,
-            vertical: MediaQuery.of(context).size.height * 0.02,
-          ),
-          child: TextField(
-            controller: _searchController,
-            onChanged: (query) {
-              if (query.isEmpty) {
-                setState(() {
-                  _securities = [];
-                });
-              } else {
-                fetchSecurities(query);
-              }
-            },
-            decoration: InputDecoration(
-              hintText: 'Поиск ценных бумаг',
-              prefixIcon: Icon(Icons.search),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
+        child: Column(
+          children: [
+            DrawerHeader(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 116.0, vertical: 20.0),
+              decoration: BoxDecoration(
+                color: Colors.blue,
+              ),
+              child: Text(
+                'Меню',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                ),
               ),
             ),
-          ),
-        ),
-        Container(
-  height: 700, // потом поменять на что-то не фиксированное
-  margin: const EdgeInsets.symmetric(horizontal: 400.0),
-  decoration: BoxDecoration(
-    color: Color(0xFFE6F4F1),
-    border: Border.all(
-      color: Colors.grey,
-      width: 1,
-    ),
-    borderRadius: BorderRadius.circular(10),
-  ),
-  child: Column(
-  mainAxisAlignment: MainAxisAlignment.start,
-  children: [
-    Text(
-      'Personal cab',
-      style: TextStyle(fontSize: 36, fontWeight: FontWeight.bold),
-    ),
-          Expanded(
-  child: TextFormField(
-    keyboardType: TextInputType.number,
-    inputFormatters: [
-      FilteringTextInputFormatter.digitsOnly,
-    ],
-    controller: budgetController,
-    decoration: InputDecoration(
-      labelText: 'Бюджет',
-      border: OutlineInputBorder(),
-      suffixIcon: Icon(Icons.edit),
-    ),
-    onChanged: (value) {
-      if (value.isNotEmpty) {
-        final budget = int.parse(value);
-        if (budget > 10000000) {
-          budgetController.value = budgetController.value.copyWith(
-            text: budgetController.text.substring(0, budgetController.text.length - 1),
-            selection: TextSelection.collapsed(offset: budgetController.text.length - 1),
-          );
-        }
-      }
-    },
-  ),
-),
-      Expanded(
-  child: TextFormField(
-    keyboardType: TextInputType.number,
-    inputFormatters: [
-      FilteringTextInputFormatter.digitsOnly,
-    ],
-    controller: periodController,
-    decoration: InputDecoration(
-      labelText: 'Периодичность',
-      border: OutlineInputBorder(),
-      suffixIcon: Icon(Icons.edit),
-    ),
-    onChanged: (value) {
-      if (value.isNotEmpty) {
-        final period = int.parse(value);
-        if (period > 365) {
-          periodController.value = periodController.value.copyWith(
-            text: periodController.text.substring(0, periodController.text.length - 1),
-            selection: TextSelection.collapsed(offset: periodController.text.length - 1),
-          );
-        }
-      }
-    },
-  ),
-),
-      Expanded(
-  child: TextFormField(
-    keyboardType: TextInputType.number,
-    inputFormatters: [
-      FilteringTextInputFormatter.digitsOnly,
-    ],
-    controller: srokController,
-    decoration: InputDecoration(
-      labelText: 'Срок',
-      border: OutlineInputBorder(),
-      suffixIcon: Icon(Icons.edit),
-    ),
-    onChanged: (value) {
-      if (value.isNotEmpty) {
-        final srok = int.parse(value);
-        if (srok > 1000) {
-          srokController.value = srokController.value.copyWith(
-            text: srokController.text.substring(0, srokController.text.length - 1),
-            selection: TextSelection.collapsed(offset: srokController.text.length - 1),
-          );
-        }
-      }
-    },
-  ),
-),
-      SwitchListTile(
-  title: Text('Покупки через Tinkoff'),
-  value: _isTinkoffEnabled,
-  onChanged: (value) {
-    setState(() {
-      _isTinkoffEnabled = value;
-    });
-  },
-),
-SwitchListTile(
-  title: Text('Уведомления'),
-  value: _isNotifEnabled,
-  onChanged: (value) {
-    setState(() {
-      _isNotifEnabled = value;
-    });
-  },
-),ElevatedButton(
-  onPressed: () async {
-    final budget = int.tryParse(budgetController.text) ?? 0;
-    final periodisity = int.tryParse(periodController.text) ?? 0;
-    final term = int.tryParse(srokController.text) ?? 0;
-    User? currentUser = FirebaseAuth.instance.currentUser;
-    final userDoc = await FirebaseFirestore.instance
-    .collection('users')
-    .doc(currentUser!.uid)
-    .get();
-
-    final portfolioId = userDoc.data()?['portfolio_id'] ?? 0;
-    final Portfolio = Portfolio2(
-      portfolioId: portfolioId, // TODO: заменить на реальный идентификатор портфеля
-      budget: budget,
-      periodisity: periodisity,
-      term: term,
-      tinkoff: _isTinkoffEnabled,
-      notifications: _isNotifEnabled,
-      userId: currentUser!.uid,
-    );
-  await Portfolio.updatePortfolio(Portfolio);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Портфель сохранен')),
-    );
-    
-  },style: ElevatedButton.styleFrom(
-      textStyle: TextStyle(fontSize: 20),
-      padding: EdgeInsets.all(16),
-  ),
-  child: Text('Сохранить портфель'),
-)
-      ],
-    ),
-  ),
-      ],
-    ),
-    if (_securities.isNotEmpty)
-      Positioned(
-        top: MediaQuery.of(context).size.height * 0.077, // Отступ сверху
-        left: MediaQuery.of(context).size.width * 0.2, // Отступ слева
-        right: MediaQuery.of(context).size.width * 0.2, // Отступ справа
-        bottom: MediaQuery.of(context).size.height * 0.65, // Отступ снизу
-        child: Container(
-          width: MediaQuery.of(context).size.width * 3 / 4,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            border: Border.all(
-              color: Colors.grey,
-              width: 1,
+            ListTile(
+              title: Text('Портфель'),
+              onTap: () {
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => Portfolio()));
+              },
             ),
-            borderRadius: BorderRadius.circular(10),
+            ListTile(
+              title: Text('Аналитика'),
+              onTap: () {
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => Analytics()));
+              },
+            ),
+            ListTile(
+              title: Text('Стратегия'),
+              onTap: () {
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => Strategy()));
+              },
+            ),
+            Expanded(
+              child: Container(),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                IconButton(
+                  onPressed: () async {},
+                  icon: Icon(Icons.folder),
+                ),
+                IconButton(
+                  onPressed: () async {},
+                  icon: Icon(Icons.info),
+                ),
+                IconButton(
+                  onPressed: () async {
+                    Navigator.push(context,
+                        MaterialPageRoute(builder: (context) => Home2()));
+                  },
+                  icon: Icon(Icons.home),
+                ),
+                IconButton(
+                  padding: const EdgeInsets.symmetric(vertical: 32.0),
+                  icon: Icon(isBedtimeOutlined
+                      ? Icons.bedtime_outlined
+                      : Icons.bedtime_rounded),
+                  onPressed: _toggleBedtimeIcon,
+                ),
+                IconButton(
+                  onPressed: () async {
+                    await FirebaseAuth.instance.signOut();
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (context) => Home()),
+                    );
+                  },
+                  icon: Icon(Icons.exit_to_app),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+      body: Stack(
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: MediaQuery.of(context).size.width * 0.2,
+                  vertical: MediaQuery.of(context).size.height * 0.02,
+                ),
+                child: TextField(
+                  controller: _searchController,
+                  onChanged: (query) {
+                    if (query.isEmpty) {
+                      setState(() {
+                        _securities = [];
+                      });
+                    } else {
+                      fetchSecurities(query);
+                    }
+                  },
+                  decoration: InputDecoration(
+                    hintText: 'Поиск ценных бумаг',
+                    prefixIcon: Icon(Icons.search),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                  ),
+                ),
+              ),
+              Container(
+                height: 700, // потом поменять на что-то не фиксированное
+                margin: const EdgeInsets.symmetric(horizontal: 400.0),
+                decoration: BoxDecoration(
+                  color: Color(0xFFE6F4F1),
+                  border: Border.all(
+                    color: Colors.grey,
+                    width: 1,
+                  ),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: TextFormField(
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                        ],
+                        controller: budgetController,
+                        decoration: InputDecoration(
+                          labelText: 'Бюджет',
+                          border: OutlineInputBorder(),
+                          suffixIcon: Icon(Icons.edit),
+                        ),
+                        onChanged: (value) {
+                          if (value.isNotEmpty) {
+                            final budget = int.parse(value);
+                            if (budget > 10000000) {
+                              budgetController.value =
+                                  budgetController.value.copyWith(
+                                text: budgetController.text.substring(
+                                    0, budgetController.text.length - 1),
+                                selection: TextSelection.collapsed(
+                                    offset: budgetController.text.length - 1),
+                              );
+                            }
+                          }
+                        },
+                      ),
+                    ),
+                    Expanded(
+                      child: TextFormField(
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                        ],
+                        controller: periodController,
+                        decoration: InputDecoration(
+                          labelText: 'Периодичность',
+                          border: OutlineInputBorder(),
+                          suffixIcon: Icon(Icons.edit),
+                        ),
+                        onChanged: (value) {
+                          if (value.isNotEmpty) {
+                            final period = int.parse(value);
+                            if (period > 365) {
+                              periodController.value =
+                                  periodController.value.copyWith(
+                                text: periodController.text.substring(
+                                    0, periodController.text.length - 1),
+                                selection: TextSelection.collapsed(
+                                    offset: periodController.text.length - 1),
+                              );
+                            }
+                          }
+                        },
+                      ),
+                    ),
+                    Expanded(
+                      child: TextFormField(
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                        ],
+                        controller: srokController,
+                        decoration: InputDecoration(
+                          labelText: 'Срок',
+                          border: OutlineInputBorder(),
+                          suffixIcon: Icon(Icons.edit),
+                        ),
+                        onChanged: (value) {
+                          if (value.isNotEmpty) {
+                            final srok = int.parse(value);
+                            if (srok > 1000) {
+                              srokController.value =
+                                  srokController.value.copyWith(
+                                text: srokController.text.substring(
+                                    0, srokController.text.length - 1),
+                                selection: TextSelection.collapsed(
+                                    offset: srokController.text.length - 1),
+                              );
+                            }
+                          }
+                        },
+                      ),
+                    ),
+                    SwitchListTile(
+                      title: Text('Покупки через Tinkoff'),
+                      value: _isTinkoffEnabled,
+                      onChanged: (value) {
+                        setState(() {
+                          _isTinkoffEnabled = value;
+                        });
+                      },
+                    ),
+                    SwitchListTile(
+                      title: Text('Уведомления'),
+                      value: _isNotifEnabled,
+                      onChanged: (value) {
+                        setState(() {
+                          _isNotifEnabled = value;
+                        });
+                      },
+                    ),
+                    ElevatedButton(
+                      onPressed: () async {
+                        final budget = int.tryParse(budgetController.text) ?? 0;
+                        final periodisity =
+                            int.tryParse(periodController.text) ?? 0;
+                        final term = int.tryParse(srokController.text) ?? 0;
+                        User? currentUser = FirebaseAuth.instance.currentUser;
+                        final userDoc = await FirebaseFirestore.instance
+                            .collection('users')
+                            .doc(currentUser!.uid)
+                            .get();
+
+                        final portfolioId =
+                            userDoc.data()?['portfolio_id'] ?? 0;
+                        final Portfolio = Portfolio2(
+                          portfolioId:
+                              portfolioId, // TODO: заменить на реальный идентификатор портфеля
+                          budget: budget,
+                          periodisity: periodisity,
+                          term: term,
+                          tinkoff: _isTinkoffEnabled,
+                          notifications: _isNotifEnabled,
+                          userId: currentUser!.uid,
+                        );
+                        await Portfolio.updatePortfolio(Portfolio);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Портфель сохранен')),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        textStyle: TextStyle(fontSize: 20),
+                        padding: EdgeInsets.all(16),
+                      ),
+                      child: Text('Сохранить портфель'),
+                    )
+                  ],
+                ),
+              ),
+            ],
           ),
-          child: ListView.builder(
-            shrinkWrap: true,
-            physics: NeverScrollableScrollPhysics(),
-            itemCount: _securities.length > 4 ? 4 : _securities.length,
-            itemBuilder: (BuildContext context, int index) {
-              final security = _securities[index];
-              return GestureDetector(
-                onTap: () {
-                  setState(() {
-                    _selectedSecurity = security;
-                  });
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => Securities(),
+          if (_securities.isNotEmpty)
+            Positioned(
+                top:
+                    MediaQuery.of(context).size.height * 0.077, // Отступ сверху
+                left: MediaQuery.of(context).size.width * 0.2, // Отступ слева
+                right: MediaQuery.of(context).size.width * 0.2, // Отступ справа
+                bottom:
+                    MediaQuery.of(context).size.height * 0.65, // Отступ снизу
+                child: Container(
+                    width: MediaQuery.of(context).size.width * 3 / 4,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: Border.all(
+                        color: Colors.grey,
+                        width: 1,
+                      ),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: ListView.builder(
+                        shrinkWrap: true,
+                        physics: NeverScrollableScrollPhysics(),
+                        itemCount:
+                            _securities.length > 4 ? 4 : _securities.length,
+                        itemBuilder: (BuildContext context, int index) {
+                          final security = _securities[index];
+                          return GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  _selectedSecurity = security;
+                                });
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => Securities(),
+                                  ),
+                                );
+                              },
+                              child: ListTile(
+                                title: Text(security),
+                              ));
+                        })))
+        ],
       ),
     );
-  },
-  child: ListTile(
-    title: Text(security),
-                    )
-                  );
-                }
-              )
-            )
-          )
-  ],
-),);
   }
 }
