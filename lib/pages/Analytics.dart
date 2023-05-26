@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:tiatia/pages/Home2.dart';
+import 'package:tiatia/pages/Archive.dart';
 import 'package:tiatia/pages/Portfolio.dart';
 import 'package:tiatia/pages/Strategy.dart';
 import 'package:tiatia/pages/Home.dart';
@@ -203,7 +204,10 @@ class _AnalyticsState extends State<Analytics> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 IconButton(
-                  onPressed: () async {},
+                  onPressed: () async {
+                    Navigator.push(context,
+                        MaterialPageRoute(builder: (context) => Archive()));
+                  },
                   icon: Icon(Icons.folder),
                 ),
                 IconButton(

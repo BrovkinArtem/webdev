@@ -7,6 +7,7 @@ import 'package:tiatia/pages/Portfolio.dart';
 import 'package:tiatia/pages/Strategy.dart';
 import 'package:tiatia/pages/Home.dart';
 import 'package:tiatia/pages/Analytics.dart';
+import 'package:tiatia/pages/Archive.dart';
 import 'package:tiatia/pages/Securities.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
@@ -239,7 +240,10 @@ class _AccountState extends State<Account> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 IconButton(
-                  onPressed: () async {},
+                  onPressed: () async {
+                    Navigator.push(context,
+                        MaterialPageRoute(builder: (context) => Archive()));
+                  },
                   icon: Icon(Icons.folder),
                 ),
                 IconButton(

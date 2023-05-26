@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:tiatia/pages/Home2.dart';
 import 'package:tiatia/pages/Portfolio.dart';
 import 'package:tiatia/pages/Analytics.dart';
+import 'package:tiatia/pages/Archive.dart';
 import 'package:tiatia/pages/Home.dart';
 import 'package:tiatia/pages/Account.dart';
 import 'package:tiatia/pages/Securities.dart';
@@ -175,7 +176,10 @@ class _StrategyState extends State<Strategy> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 IconButton(
-                  onPressed: () async {},
+                  onPressed: () async {
+                    Navigator.push(context,
+                        MaterialPageRoute(builder: (context) => Archive()));
+                  },
                   icon: Icon(Icons.folder),
                 ),
                 IconButton(
@@ -246,11 +250,17 @@ class _StrategyState extends State<Strategy> {
                     List<int> amounts = [];
                     List<double> boughtPrices = [];
                     List<String> terms = [];
-                    for (var tickerDoc in tickerDocs) {
-                      tickers.add(tickerDoc['ticker']);
-                      amounts.add(tickerDoc['amount']);
-                      boughtPrices.add(tickerDoc['bought']);
-                      terms.add(tickerDoc['term']);
+                    List<int> activeIndices =
+                        []; // Список индексов активных ценных бумаг
+                    for (int i = 0; i < tickerDocs.length; i++) {
+                      var tickerDoc = tickerDocs[i];
+                      if (tickerDoc['is_active'] == true) {
+                        tickers.add(tickerDoc['ticker']);
+                        amounts.add(tickerDoc['amount']);
+                        boughtPrices.add(tickerDoc['bought']);
+                        terms.add(tickerDoc['term']);
+                        activeIndices.add(i);
+                      }
                     }
                     final portfolioDoc = snapshot.data!.docs.first;
                     //ПЕРЕДЕЛАТЬ АЛГОРИТМ!!!!!!!!!!!!!!!!!!!!!!!!!

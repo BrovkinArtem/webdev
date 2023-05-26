@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:tiatia/pages/Home2.dart';
 import 'package:tiatia/pages/Portfolio.dart';
+import 'package:tiatia/pages/Archive.dart';
 import 'package:tiatia/pages/Strategy.dart';
 import 'package:tiatia/pages/Home.dart';
 import 'package:tiatia/pages/Analytics.dart';
@@ -227,6 +228,7 @@ class _SecuritiesState extends State<Securities> {
                             'term': enteredDate,
                             'bought': 0,
                             'portfolio_id': user.uid,
+                            'is_active': true,
                           });
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
@@ -244,6 +246,7 @@ class _SecuritiesState extends State<Securities> {
                             'term': enteredDate,
                             'bought': 0,
                             'portfolio_id': user.uid,
+                            'is_active': true,
                           });
                         }
                         Navigator.pop(context);
@@ -376,7 +379,10 @@ class _SecuritiesState extends State<Securities> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   IconButton(
-                    onPressed: () async {},
+                    onPressed: () async {
+                      Navigator.push(context,
+                          MaterialPageRoute(builder: (context) => Archive()));
+                    },
                     icon: Icon(Icons.folder),
                   ),
                   IconButton(

@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:tiatia/pages/Home.dart';
 import 'package:tiatia/pages/Home2.dart';
-import 'package:tiatia/pages/Archive.dart';
+import 'package:tiatia/pages/Portfolio.dart';
 import 'package:tiatia/pages/Strategy.dart';
 import 'package:tiatia/pages/Analytics.dart';
 import 'package:tiatia/pages/Account.dart';
@@ -15,11 +15,11 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-class Portfolio extends StatefulWidget {
-  const Portfolio({super.key});
+class Archive extends StatefulWidget {
+  const Archive({super.key});
 
   @override
-  State<Portfolio> createState() => _PortfolioState();
+  State<Archive> createState() => _ArchiveState();
 }
 
 class NotificationsProvider extends ChangeNotifier {
@@ -33,7 +33,7 @@ class NotificationsProvider extends ChangeNotifier {
   }
 }
 
-class _PortfolioState extends State<Portfolio> {
+class _ArchiveState extends State<Archive> {
   bool isBedtimeOutlined = true;
 
   void _toggleBedtimeIcon() {
@@ -182,7 +182,7 @@ class _PortfolioState extends State<Portfolio> {
             },
           ),
         ],
-        title: Text('Портфель'),
+        title: Text('Архив'),
       ),
       drawer: Drawer(
         child: Column(
@@ -204,7 +204,8 @@ class _PortfolioState extends State<Portfolio> {
             ListTile(
               title: Text('Портфель'),
               onTap: () {
-                // Обработка нажатия на пункт меню
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => Portfolio()));
               },
             ),
             ListTile(
@@ -228,10 +229,7 @@ class _PortfolioState extends State<Portfolio> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 IconButton(
-                  onPressed: () async {
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: (context) => Archive()));
-                  },
+                  onPressed: () async {},
                   icon: Icon(Icons.folder),
                 ),
                 IconButton(
@@ -302,16 +300,12 @@ class _PortfolioState extends State<Portfolio> {
                     List<int> amounts = [];
                     List<double> boughtPrices = [];
                     List<String> terms = [];
-                    List<int> activeIndices =
-                        []; // Список индексов активных ценных бумаг
-                    for (int i = 0; i < tickerDocs.length; i++) {
-                      var tickerDoc = tickerDocs[i];
-                      if (tickerDoc['is_active'] == true) {
+                    for (var tickerDoc in tickerDocs) {
+                      if (tickerDoc['is_active'] == false) {
                         tickers.add(tickerDoc['ticker']);
                         amounts.add(tickerDoc['amount']);
                         boughtPrices.add(tickerDoc['bought']);
                         terms.add(tickerDoc['term']);
-                        activeIndices.add(i);
                       }
                     }
                     return Column(
@@ -405,7 +399,7 @@ class _PortfolioState extends State<Portfolio> {
                                           .doc(FirebaseAuth
                                               .instance.currentUser!.uid)
                                           .collection('securities')
-                                          .doc(tickerDocs[activeIndices[i]]
+                                          .doc(tickerDocs[i]
                                               .id) // получаем DocumentReference по индексу i
                                           .delete(); // удаляем документ
 
@@ -552,9 +546,7 @@ class _PortfolioState extends State<Portfolio> {
                                                                   .uid)
                                                               .collection(
                                                                   'securities')
-                                                              .doc(tickerDocs[
-                                                                      activeIndices[
-                                                                          i]]
+                                                              .doc(tickerDocs[i]
                                                                   .id)
                                                               .update({
                                                             'amount': newAmount
@@ -782,11 +774,51 @@ class _PortfolioState extends State<Portfolio> {
                                               );
                                               if (delete) {
                                                 final security = tickerDocs[i];
-                                                final securityRef =
-                                                    security.reference;
-                                                await securityRef.update({
-                                                  'is_active': false,
-                                                });
+                                                // Получаем данные документа
+                                                final data = security.data();
+                                                // Удаляем старый документ
+                                                await security.reference
+                                                    .delete();
+                                                // Перебираем все документы и перенастраиваем их id и название документа
+                                                int id = 1;
+                                                final securities =
+                                                    await FirebaseFirestore
+                                                        .instance
+                                                        .collection('users')
+                                                        .doc(FirebaseAuth
+                                                            .instance
+                                                            .currentUser!
+                                                            .uid)
+                                                        .collection(
+                                                            'securities')
+                                                        .get();
+                                                for (final security
+                                                    in securities.docs) {
+                                                  // Получаем данные документа
+                                                  final data = security.data();
+                                                  // Удаляем старый документ
+                                                  await security.reference
+                                                      .delete();
+
+                                                  // Создаем новый документ с нужным названием и обновленным полем securities_id
+                                                  final newDocName = '$id';
+                                                  final newDocRef =
+                                                      FirebaseFirestore.instance
+                                                          .collection('users')
+                                                          .doc(FirebaseAuth
+                                                              .instance
+                                                              .currentUser!
+                                                              .uid)
+                                                          .collection(
+                                                              'securities')
+                                                          .doc(newDocName);
+                                                  await newDocRef.set({
+                                                    ...data,
+                                                    'securities_id': id
+                                                  });
+
+                                                  id++;
+                                                }
 
                                                 setState(() {
                                                   // перезагружаем данные, чтобы обновить отображение
