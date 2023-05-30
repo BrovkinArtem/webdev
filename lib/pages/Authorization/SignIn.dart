@@ -6,6 +6,9 @@ import 'package:tiatia/utils/constants.dart';
 import 'package:tiatia/pages/Authorization/SignUp.dart';
 import 'package:tiatia/functions/authFunctions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:email_validator/email_validator.dart';
+import 'package:tiatia/functions/firebaseFunctions.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../../utils/constants.dart';
 
@@ -24,12 +27,33 @@ class _SignInState extends State<SignIn> {
   String fullname = '';
   bool login = true;
 
+  // Проверяет, содержит ли пароль хотя бы одну цифру
+  bool containsDigit(String password) {
+    return password.contains(RegExp(r'\d'));
+  }
+
+// Проверяет, содержит ли пароль специальные символы
+  bool containsSpecialCharacters(String password) {
+    return password.contains(RegExp(r'[!@#\$%^&*(),.?":{}|<>]'));
+  }
+
+// Проверяет, содержит ли пароль последовательности чисел (например, 123456)
+  bool containsSequentialDigits(String password) {
+    return password.contains(RegExp(r'123|234|345|456|567|678|789|890'));
+  }
+
+// Проверяет, содержит ли пароль последовательности букв (например, qwerty)
+  bool containsSequentialLetters(String password) {
+    return password.contains(
+        RegExp(r'abcdefghijklmnopqrstuvwxyz|ABCDEFGHIJKLMNOPQRSTUVWXYZ'));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
           elevation: 0,
-          title: Text('Авторизация'),
+          title: Text('Регистрация'),
         ),
         body: Form(
           key: _formKey,
@@ -64,15 +88,15 @@ class _SignInState extends State<SignIn> {
                                 },
                               ),
 
-                        // ======== Email ========
                         TextFormField(
                           key: ValueKey('email'),
                           decoration: InputDecoration(
                             hintText: 'Введите email',
                           ),
                           validator: (value) {
-                            if (value!.isEmpty || !value.contains('@')) {
-                              return 'Пожалуйста введите email правильно';
+                            if (value!.isEmpty ||
+                                !EmailValidator.validate(value)) {
+                              return 'Пожалуйста, введите email правильно';
                             } else {
                               return null;
                             }
@@ -92,7 +116,14 @@ class _SignInState extends State<SignIn> {
                           ),
                           validator: (value) {
                             if (value!.length < 6) {
-                              return 'Пожалуйста введите пароль не менее 6 символов';
+                              return 'Пожалуйста, введите пароль не менее 6 символов';
+                            } else if (!containsDigit(value)) {
+                              return 'Пароль должен содержать как минимум одну цифру';
+                            } else if (containsSpecialCharacters(value)) {
+                              return 'Пароль не должен содержать специальные символы';
+                            } else if (containsSequentialDigits(value) ||
+                                containsSequentialLetters(value)) {
+                              return 'Пароль не должен содержать последовательности чисел или букв';
                             } else {
                               return null;
                             }
@@ -107,82 +138,89 @@ class _SignInState extends State<SignIn> {
                           height: 30,
                         ),
                         Container(
-                          height: 55,
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            onPressed: () async {
-                              if (_formKey.currentState!.validate()) {
-                                _formKey.currentState!.save();
+                            height: 55,
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              onPressed: () async {
+                                if (_formKey.currentState!.validate()) {
+                                  _formKey.currentState!.save();
 
-                                try {
-                                  if (login) {
-                                    // Вход пользователя
-                                    await FirebaseAuth.instance
-                                        .signInWithEmailAndPassword(
-                                      email: email,
-                                      password: password,
-                                    );
-
-                                    // Проверка существования аккаунта в Firebase
-                                    if (FirebaseAuth.instance.currentUser ==
-                                        null) {
-                                      // Аккаунт не существует
-                                      showDialog(
-                                        context: context,
-                                        builder: (context) => AlertDialog(
-                                          title: Text('Ошибка'),
-                                          content:
-                                              Text('Аккаунт не существует'),
-                                          actions: [
-                                            TextButton(
-                                              child: Text('ОК'),
-                                              onPressed: () =>
-                                                  Navigator.pop(context),
-                                            ),
-                                          ],
-                                        ),
+                                  try {
+                                    if (login) {
+                                      // Вход пользователя
+                                      await FirebaseAuth.instance
+                                          .signInWithEmailAndPassword(
+                                        email: email,
+                                        password: password,
                                       );
-                                      return;
+
+                                      // Проверка существования аккаунта в Firebase
+                                      if (FirebaseAuth.instance.currentUser ==
+                                          null) {
+                                        // Аккаунт не существует
+                                        showDialog(
+                                          context: context,
+                                          builder: (context) => AlertDialog(
+                                            title: Text('Ошибка'),
+                                            content:
+                                                Text('Аккаунт не существует'),
+                                            actions: [
+                                              TextButton(
+                                                child: Text('ОК'),
+                                                onPressed: () =>
+                                                    Navigator.pop(context),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                        return;
+                                      }
+                                    } else {
+                                      // Регистрация пользователя
+                                      UserCredential userCredential =
+                                          await FirebaseAuth.instance
+                                              .createUserWithEmailAndPassword(
+                                        email: email,
+                                        password: password,
+                                      );
+
+                                      await FirebaseAuth.instance.currentUser!
+                                          .updateDisplayName(fullname);
+                                      await FirebaseAuth.instance.currentUser!
+                                          .updateEmail(email);
+                                      await FirestoreServices.saveUser(fullname,
+                                          email, userCredential.user!.uid);
                                     }
-                                  } else {
-                                    // Регистрация пользователя
-                                    await FirebaseAuth.instance
-                                        .createUserWithEmailAndPassword(
-                                      email: email,
-                                      password: password,
+
+                                    // Успешная авторизация или регистрация
+                                    Navigator.pushReplacement(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) => Home2()),
+                                    );
+                                  } catch (e) {
+                                    // Обработка ошибок авторизации или регистрации
+                                    showDialog(
+                                      context: context,
+                                      builder: (context) => AlertDialog(
+                                        title: Text('Ошибка'),
+                                        content: Text(e.toString()),
+                                        actions: [
+                                          TextButton(
+                                            child: Text('ОК'),
+                                            onPressed: () =>
+                                                Navigator.pop(context),
+                                          ),
+                                        ],
+                                      ),
                                     );
                                   }
-
-                                  // Успешная авторизация или регистрация
-                                  Navigator.pushReplacement(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) => Home2()),
-                                  );
-                                } catch (e) {
-                                  // Обработка ошибок авторизации или регистрации
-                                  showDialog(
-                                    context: context,
-                                    builder: (context) => AlertDialog(
-                                      title: Text('Ошибка'),
-                                      content: Text(e.toString()),
-                                      actions: [
-                                        TextButton(
-                                          child: Text('ОК'),
-                                          onPressed: () =>
-                                              Navigator.pop(context),
-                                        ),
-                                      ],
-                                    ),
-                                  );
                                 }
-                              }
-                            },
-                            child: Text(login
-                                ? 'Авторизироваться'
-                                : 'Зарегистрироваться'),
-                          ),
-                        ),
+                              },
+                              child: Text(login
+                                  ? 'Авторизоваться'
+                                  : 'Зарегистрироваться'),
+                            )),
                         SizedBox(
                           height: 10,
                         ),
