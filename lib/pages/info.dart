@@ -152,7 +152,7 @@ class _InfoState extends State<Info> {
               },
             ),
           ],
-          title: Text('Главная'),
+          title: Text('Информация'),
         ),
         drawer: Drawer(
           child: Column(
