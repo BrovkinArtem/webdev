@@ -948,6 +948,58 @@ class _PortfolioState extends State<Portfolio> {
                                               onPressed: () async {
                                                 // Ваша логика обработчика нажатия кнопки
 
+                                                await FirebaseFirestore.instance
+                                                    .collection('users')
+                                                    .doc(FirebaseAuth.instance
+                                                        .currentUser!.uid)
+                                                    .collection('securities')
+                                                    .doc(tickerDocs[
+                                                            activeIndices[i]]
+                                                        .id) // получаем DocumentReference по индексу i
+                                                    .delete(); // удаляем документ
+
+                                                // Обновляем названия и ID всех документов
+                                                final securities =
+                                                    await FirebaseFirestore
+                                                        .instance
+                                                        .collection('users')
+                                                        .doc(FirebaseAuth
+                                                            .instance
+                                                            .currentUser!
+                                                            .uid)
+                                                        .collection(
+                                                            'securities')
+                                                        .get();
+
+                                                int id =
+                                                    1; // Новое значение ID для первого документа
+                                                for (final security
+                                                    in securities.docs) {
+                                                  // Получаем данные документа
+                                                  final data = security.data();
+                                                  // Удаляем старый документ
+                                                  await security.reference
+                                                      .delete();
+
+                                                  // Создаем новый документ с нужным названием и обновленным полем securities_id
+                                                  final newDocName = '$id';
+                                                  final newDocRef =
+                                                      FirebaseFirestore.instance
+                                                          .collection('users')
+                                                          .doc(FirebaseAuth
+                                                              .instance
+                                                              .currentUser!
+                                                              .uid)
+                                                          .collection(
+                                                              'securities')
+                                                          .doc(newDocName);
+                                                  await newDocRef.set({
+                                                    ...data,
+                                                    'securities_id': id
+                                                  });
+
+                                                  id++;
+                                                }
                                                 setState(() {
                                                   // перезагружаем данные, чтобы обновить отображение
                                                   tickers.removeAt(i);
