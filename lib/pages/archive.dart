@@ -9,6 +9,7 @@ import 'package:tiatia/pages/Strategy.dart';
 import 'package:tiatia/pages/Analytics.dart';
 import 'package:tiatia/pages/Account.dart';
 import 'package:tiatia/pages/Securities.dart';
+import 'package:tiatia/pages/Info.dart';
 import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -233,7 +234,10 @@ class _ArchiveState extends State<Archive> {
                   icon: Icon(Icons.folder),
                 ),
                 IconButton(
-                  onPressed: () async {},
+                  onPressed: () async {
+                    Navigator.push(context,
+                        MaterialPageRoute(builder: (context) => Info()));
+                  },
                   icon: Icon(Icons.info),
                 ),
                 IconButton(

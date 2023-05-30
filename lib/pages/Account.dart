@@ -6,6 +6,7 @@ import 'package:tiatia/pages/Home2.dart';
 import 'package:tiatia/pages/Portfolio.dart';
 import 'package:tiatia/pages/Strategy.dart';
 import 'package:tiatia/pages/Home.dart';
+import 'package:tiatia/pages/Info.dart';
 import 'package:tiatia/pages/Analytics.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:tiatia/pages/Archive.dart';
@@ -270,7 +271,10 @@ class _AccountState extends State<Account> {
                     icon: Icon(Icons.folder),
                   ),
                   IconButton(
-                    onPressed: () async {},
+                    onPressed: () async {
+                      Navigator.push(context,
+                          MaterialPageRoute(builder: (context) => Info()));
+                    },
                     icon: Icon(Icons.info),
                   ),
                   IconButton(
